@@ -4,12 +4,14 @@ package handler
 
 import (
 	"context"
-	"github.com/cloudwego/hertz/pkg/protocol/consts"
 	"log"
 	"packet_cloud/service/readwriter"
 
-	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/cloudwego/hertz/pkg/protocol/consts"
+
 	packet "packet_cloud/biz/model/hertz/packet"
+
+	"github.com/cloudwego/hertz/pkg/app"
 )
 
 // ListPacket .
@@ -31,7 +33,7 @@ func ListPacket(ctx context.Context, c *app.RequestContext) {
 	}
 
 	// 数据太多，行数据改为接口获取
-	for i := 0; i < len(packets); i++ {
+	for i := range packets {
 		packets[i].UserPackets = make([]*packet.UserPacket, 0)
 	}
 
