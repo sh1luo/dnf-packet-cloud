@@ -3,7 +3,7 @@ package readwriter
 import (
     "github.com/pkg/errors"
     "packet_cloud/biz/model/hertz/packet"
-    "os"
+    cfg "packet_cloud/config"
 )
 
 type StorageMedia int
@@ -20,14 +20,14 @@ type ReadWriter interface {
 }
 
 func newReadWriter(media StorageMedia) ReadWriter {
-    if os.Getenv("STORAGE_MEDIA") == "mysql" {
-        return NewMySQLStorageFromEnv()
+    if cfg.Get().StorageMedia == "mysql" {
+        return NewMySQLStorageFromConfig()
     }
     switch media {
     case LFS:
         return &LocalFileSystem{}
     case MySQL:
-        return NewMySQLStorageFromEnv()
+        return NewMySQLStorageFromConfig()
     default:
         
     }

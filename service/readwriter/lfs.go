@@ -7,6 +7,7 @@ import (
     "log"
     "os"
     "packet_cloud/biz/model/hertz/packet"
+    cfg "packet_cloud/config"
     "sync"
     "time"
 )
@@ -28,9 +29,7 @@ func (s *LocalFileSystem) ReadPacket() ([]*packet.CloudPacket, error) {
 	syncLock.RLock()
 	defer syncLock.RUnlock()
 
-    if v := os.Getenv("PACKETS_FILE_PATH"); v != "" {
-        fileRelativePath = v
-    }
+    fileRelativePath = cfg.Get().PacketsFilePath
     bytes, err := os.ReadFile(fileRelativePath)
 	if err != nil {
 		return nil, err
@@ -51,9 +50,7 @@ func (s *LocalFileSystem) SavePacket(packets []*packet.CloudPacket) error {
 	syncLock.Lock()
 	defer syncLock.Unlock()
 
-    if v := os.Getenv("PACKETS_FILE_PATH"); v != "" {
-        fileRelativePath = v
-    }
+    fileRelativePath = cfg.Get().PacketsFilePath
     err = os.WriteFile(fileRelativePath, bytes, 0644)
 	if err != nil {
 		return err

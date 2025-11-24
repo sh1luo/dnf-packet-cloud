@@ -1,17 +1,18 @@
 package readwriter
 
 import (
-    "os"
     "testing"
     packet "packet_cloud/biz/model/hertz/packet"
     _ "github.com/go-sql-driver/mysql"
+    cfg "packet_cloud/config"
 )
 
 func TestMySQLReadWrite(t *testing.T) {
-    if os.Getenv("MYSQL_DSN") == "" {
-        t.Skip("MYSQL_DSN not set")
+    x := cfg.Get()
+    if x.MySQL.DSN == "" {
+        t.Skip("mysql dsn missing")
     }
-    s := NewMySQLStorageFromEnv()
+    s := NewMySQLStorageFromConfig()
     if s == nil {
         t.Skip("mysql not available")
     }

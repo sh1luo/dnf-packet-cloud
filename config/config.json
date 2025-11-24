@@ -1,0 +1,14 @@
+{
+    "StorageMedia": "lfs",
+    "PacketsFilePath": "./packets",
+    "MySQL": {
+        "DSN": "",
+        "ReadDSN": "",
+        "MaxOpen": 20,
+        "MaxIdle": 10,
+        "ConnMaxLifetimeMin": 30,
+        "QueryCacheTTLms": 500,
+        "SlowQueryMs": 200,
+        "QueryTimeoutMs": 3000
+    }
+}
