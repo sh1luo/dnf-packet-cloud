@@ -1,8 +1,9 @@
 package readwriter
 
 import (
-	"github.com/pkg/errors"
-	"packet_cloud/biz/model/hertz/packet"
+    "github.com/pkg/errors"
+    "packet_cloud/biz/model/hertz/packet"
+    "os"
 )
 
 type StorageMedia int
@@ -13,21 +14,24 @@ const (
 )
 
 type ReadWriter interface {
-	ReadPacket() ([]*packet.CloudPacket, error)
-	SavePacket([]*packet.CloudPacket) error
-	Backup() error
+    ReadPacket() ([]*packet.CloudPacket, error)
+    SavePacket([]*packet.CloudPacket) error
+    Backup() error
 }
 
 func newReadWriter(media StorageMedia) ReadWriter {
-	switch media {
-	case LFS:
-		return &LocalFileSystem{}
-	case MySQL:
-
-	default:
-
-	}
-	return nil
+    if os.Getenv("STORAGE_MEDIA") == "mysql" {
+        return NewMySQLStorageFromEnv()
+    }
+    switch media {
+    case LFS:
+        return &LocalFileSystem{}
+    case MySQL:
+        return NewMySQLStorageFromEnv()
+    default:
+        
+    }
+    return nil
 }
 
 func ReadPacket(media StorageMedia) ([]*packet.CloudPacket, error) {

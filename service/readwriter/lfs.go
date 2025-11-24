@@ -1,18 +1,18 @@
 package readwriter
 
 import (
-	"github.com/bytedance/sonic"
-	"github.com/pkg/errors"
-	"github.com/robfig/cron/v3"
-	"log"
-	"os"
-	"packet_cloud/biz/model/hertz/packet"
-	"sync"
-	"time"
+    "github.com/bytedance/sonic"
+    "github.com/pkg/errors"
+    "github.com/robfig/cron/v3"
+    "log"
+    "os"
+    "packet_cloud/biz/model/hertz/packet"
+    "sync"
+    "time"
 )
 
-const (
-	fileRelativePath = "./packets"
+var (
+    fileRelativePath = "./packets"
 )
 
 var (
@@ -23,12 +23,15 @@ type LocalFileSystem struct {
 }
 
 func (s *LocalFileSystem) ReadPacket() ([]*packet.CloudPacket, error) {
-	packets := make([]*packet.CloudPacket, 0)
+    packets := make([]*packet.CloudPacket, 0)
 
 	syncLock.RLock()
 	defer syncLock.RUnlock()
 
-	bytes, err := os.ReadFile(fileRelativePath)
+    if v := os.Getenv("PACKETS_FILE_PATH"); v != "" {
+        fileRelativePath = v
+    }
+    bytes, err := os.ReadFile(fileRelativePath)
 	if err != nil {
 		return nil, err
 	}
@@ -40,15 +43,18 @@ func (s *LocalFileSystem) ReadPacket() ([]*packet.CloudPacket, error) {
 }
 
 func (s *LocalFileSystem) SavePacket(packets []*packet.CloudPacket) error {
-	bytes, err := sonic.Marshal(packets)
-	if err != nil {
-		return err
-	}
+    bytes, err := sonic.Marshal(packets)
+    if err != nil {
+        return err
+    }
 
 	syncLock.Lock()
 	defer syncLock.Unlock()
 
-	err = os.WriteFile(fileRelativePath, bytes, 0644)
+    if v := os.Getenv("PACKETS_FILE_PATH"); v != "" {
+        fileRelativePath = v
+    }
+    err = os.WriteFile(fileRelativePath, bytes, 0644)
 	if err != nil {
 		return err
 	}
