@@ -20,18 +20,18 @@ type ReadWriter interface {
 }
 
 func newReadWriter(media StorageMedia) ReadWriter {
-    if cfg.Get().StorageMedia == "mysql" {
-        return NewMySQLStorageFromConfig()
-    }
-    switch media {
-    case LFS:
-        return &LocalFileSystem{}
-    case MySQL:
-        return NewMySQLStorageFromConfig()
-    default:
-        
-    }
-    return nil
+	sm := cfg.Get().StorageMedia
+	if sm == "mysql" || sm == "rds" {
+		return NewMySQLStorageFromConfig()
+	}
+	switch media {
+	case LFS:
+		return &LocalFileSystem{}
+	case MySQL:
+		return NewMySQLStorageFromConfig()
+	default:
+		return &LocalFileSystem{}
+	}
 }
 
 func ReadPacket(media StorageMedia) ([]*packet.CloudPacket, error) {

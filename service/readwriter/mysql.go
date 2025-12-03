@@ -2,19 +2,47 @@ package readwriter
 
 import (
 	"context"
-	"database/sql"
 	"log"
+	"os"
 	"packet_cloud/biz/model/hertz/packet"
 	cfg "packet_cloud/config"
-	"strings"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
+type CloudPacketModel struct {
+	ID          int32             `gorm:"primaryKey;column:id"`
+	Region      string            `gorm:"column:region;type:varchar(32);index:idx_region"`
+	Name        string            `gorm:"column:name;type:varchar(64)"`
+	Channel     string            `gorm:"column:channel;type:varchar(32);index:idx_channel"`
+	Uploader    string            `gorm:"column:uploader;type:varchar(64);index:idx_uploader;index:idx_uploader_time"`
+	Time        string            `gorm:"column:time;type:varchar(32);index:idx_time;index:idx_uploader_time"`
+	UserPackets []UserPacketModel `gorm:"foreignKey:CloudPacketID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+}
+
+func (CloudPacketModel) TableName() string {
+	return "cloud_packets"
+}
+
+type UserPacketModel struct {
+	ID            int32  `gorm:"primaryKey;column:id"`
+	CloudPacketID int32  `gorm:"column:cloud_packet_id;index:idx_cloud_packet_id"`
+	Name          string `gorm:"column:name;type:varchar(64)"`
+	Content       string `gorm:"column:content;type:longtext"`
+	Size          int32  `gorm:"column:size"`
+	SendTiming    string `gorm:"column:send_timing;type:varchar(32)"`
+}
+
+func (UserPacketModel) TableName() string {
+	return "user_packets"
+}
+
 type MySQLStorage struct {
-	writeDB       *sql.DB
-	readDB        *sql.DB
+	writeDB       *gorm.DB
+	readDB        *gorm.DB
 	cache         []*packet.CloudPacket
 	cacheAt       time.Time
 	cacheTTL      time.Duration
@@ -25,9 +53,15 @@ type MySQLStorage struct {
 func NewMySQLStorageFromConfig() *MySQLStorage {
 	writeDSN := cfg.Get().MySQL.DSN
 	if writeDSN == "" {
+		writeDSN = os.Getenv("MYSQL_DSN")
+	}
+	if writeDSN == "" {
 		return nil
 	}
 	readDSN := cfg.Get().MySQL.ReadDSN
+	if readDSN == "" {
+		readDSN = os.Getenv("MYSQL_READ_DSN")
+	}
 
 	maxOpen := intOr(cfg.Get().MySQL.MaxOpen, 20)
 	maxIdle := intOr(cfg.Get().MySQL.MaxIdle, 10)
@@ -36,23 +70,21 @@ func NewMySQLStorageFromConfig() *MySQLStorage {
 	slowMS := intOr(cfg.Get().MySQL.SlowQueryMs, 200)
 	qTimeoutMS := intOr(cfg.Get().MySQL.QueryTimeoutMs, 3000)
 
-	wdb := mustOpenWithRetry(writeDSN)
+	wdb := mustOpenWithRetry(writeDSN, maxOpen, maxIdle, lifeMin)
 	if wdb == nil {
 		return nil
 	}
-	wdb.SetMaxOpenConns(maxOpen)
-	wdb.SetMaxIdleConns(maxIdle)
-	wdb.SetConnMaxLifetime(time.Duration(lifeMin) * time.Minute)
 
-	var rdb *sql.DB
+	// Auto Migrate
+	if err := wdb.AutoMigrate(&CloudPacketModel{}, &UserPacketModel{}); err != nil {
+		log.Printf("AutoMigrate error: %v", err)
+	}
+
+	var rdb *gorm.DB
 	if readDSN != "" {
-		rdb = mustOpenWithRetry(readDSN)
+		rdb = mustOpenWithRetry(readDSN, maxOpen, maxIdle, lifeMin)
 		if rdb == nil {
 			rdb = wdb
-		} else {
-			rdb.SetMaxOpenConns(maxOpen)
-			rdb.SetMaxIdleConns(maxIdle)
-			rdb.SetConnMaxLifetime(time.Duration(lifeMin) * time.Minute)
 		}
 	} else {
 		rdb = wdb
@@ -73,139 +105,130 @@ func (s *MySQLStorage) ReadPacket() ([]*packet.CloudPacket, error) {
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), s.queryTimeout)
+	defer cancel()
+
 	start := time.Now()
-	rows, err := s.readDB.QueryContext(ctx, `SELECT id, region, name, channel, uploader, time FROM cloud_packets ORDER BY id ASC`)
-	cancel()
+	var models []CloudPacketModel
+	// Preload UserPackets to avoid N+1 query
+	err := s.readDB.WithContext(ctx).Preload("UserPackets").Order("id ASC").Find(&models).Error
 	if err != nil {
 		return nil, err
-	}
-	defer rows.Close()
-
-	cps := make([]*packet.CloudPacket, 0, 128)
-	ids := make([]int32, 0, 128)
-	for rows.Next() {
-		var id int32
-		var region, name, channel, uploader, tm string
-		if err := rows.Scan(&id, &region, &name, &channel, &uploader, &tm); err != nil {
-			return nil, err
-		}
-		cps = append(cps, &packet.CloudPacket{Id: id, Region: region, Name: name, Channel: channel, Uploader: uploader, Time: tm})
-		ids = append(ids, id)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	if len(ids) > 0 {
-		placeholders := make([]string, len(ids))
-		args := make([]any, len(ids))
-		for i, id := range ids {
-			placeholders[i] = "?"
-			args[i] = id
-		}
-		q := `SELECT id, cloud_packet_id, name, content, size, send_timing FROM user_packets WHERE cloud_packet_id IN (` + strings.Join(placeholders, ",") + `) ORDER BY cloud_packet_id, id`
-		ctx2, cancel2 := context.WithTimeout(context.Background(), s.queryTimeout)
-		urows, err := s.readDB.QueryContext(ctx2, q, args...)
-		cancel2()
-		if err != nil {
-			return nil, err
-		}
-		defer urows.Close()
-		upMap := make(map[int32][]*packet.UserPacket, len(ids))
-		for urows.Next() {
-			var id, cpID int32
-			var name, content, send string
-			var size int32
-			if err := urows.Scan(&id, &cpID, &name, &content, &size, &send); err != nil {
-				return nil, err
-			}
-			upMap[cpID] = append(upMap[cpID], &packet.UserPacket{Id: id, Name: name, Content: content, Size: size, SendTiming: send})
-		}
-		if err := urows.Err(); err != nil {
-			return nil, err
-		}
-		for _, cp := range cps {
-			cp.UserPackets = upMap[cp.Id]
-		}
 	}
 
 	if dur := time.Since(start); dur > s.slowThreshold {
 		log.Printf("slow query ReadPacket dur=%s", dur)
 	}
 
-	s.cache = cps
+	packets := make([]*packet.CloudPacket, len(models))
+	for i, m := range models {
+		ups := make([]*packet.UserPacket, len(m.UserPackets))
+		for j, um := range m.UserPackets {
+			ups[j] = &packet.UserPacket{
+				Id:         um.ID,
+				Name:       um.Name,
+				Content:    um.Content,
+				Size:       um.Size,
+				SendTiming: um.SendTiming,
+			}
+		}
+		packets[i] = &packet.CloudPacket{
+			Id:          m.ID,
+			Region:      m.Region,
+			Name:        m.Name,
+			Channel:     m.Channel,
+			Uploader:    m.Uploader,
+			Time:        m.Time,
+			UserPackets: ups,
+		}
+	}
+
+	s.cache = packets
 	s.cacheAt = time.Now()
-	return cps, nil
+	return packets, nil
 }
 
 func (s *MySQLStorage) SavePacket(packets []*packet.CloudPacket) error {
 	ctx, cancel := context.WithTimeout(context.Background(), s.queryTimeout)
-	tx, err := s.writeDB.BeginTx(ctx, nil)
-	cancel()
-	if err != nil {
-		return err
-	}
-	_, err = tx.Exec(`DELETE FROM user_packets`)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	_, err = tx.Exec(`DELETE FROM cloud_packets`)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	cpStmt, err := tx.Prepare(`INSERT INTO cloud_packets (id, region, name, channel, uploader, time) VALUES (?, ?, ?, ?, ?, ?)`)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	defer cpStmt.Close()
-	upStmt, err := tx.Prepare(`INSERT INTO user_packets (id, cloud_packet_id, name, content, size, send_timing) VALUES (?, ?, ?, ?, ?, ?)`)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	defer upStmt.Close()
+	defer cancel()
 
-	for _, cp := range packets {
-		_, err = cpStmt.Exec(cp.Id, cp.Region, cp.Name, cp.Channel, cp.Uploader, cp.Time)
-		if err != nil {
-			tx.Rollback()
+	return s.writeDB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// Clear existing data to match LFS overwrite behavior
+		if err := tx.Exec("DELETE FROM user_packets").Error; err != nil {
 			return err
 		}
-		for _, up := range cp.UserPackets {
-			_, err = upStmt.Exec(up.Id, cp.Id, up.Name, up.Content, up.Size, up.SendTiming)
-			if err != nil {
-				tx.Rollback()
-				return err
+		if err := tx.Exec("DELETE FROM cloud_packets").Error; err != nil {
+			return err
+		}
+
+		if len(packets) == 0 {
+			return nil
+		}
+
+		// Convert to models
+		models := make([]CloudPacketModel, len(packets))
+		for i, p := range packets {
+			ums := make([]UserPacketModel, len(p.UserPackets))
+			for j, up := range p.UserPackets {
+				ums[j] = UserPacketModel{
+					ID:            up.Id,
+					CloudPacketID: p.Id,
+					Name:          up.Name,
+					Content:       up.Content,
+					Size:          up.Size,
+					SendTiming:    up.SendTiming,
+				}
+			}
+			models[i] = CloudPacketModel{
+				ID:          p.Id,
+				Region:      p.Region,
+				Name:        p.Name,
+				Channel:     p.Channel,
+				Uploader:    p.Uploader,
+				Time:        p.Time,
+				UserPackets: ums,
 			}
 		}
-	}
-	if err = tx.Commit(); err != nil {
-		return err
-	}
-	s.cache = packets
-	s.cacheAt = time.Now()
-	return nil
+
+		// Batch insert
+		// GORM handles associations automatically if configured correctly.
+		// However, batch inserting with associations can be tricky.
+		// For safety and simplicity given the full rewrite, we can insert cloud packets first, then user packets.
+		// Or just let GORM handle it. GORM's Create supports batch insert with associations.
+		if err := tx.Create(&models).Error; err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
 func (s *MySQLStorage) Backup() error {
 	return nil
 }
 
-func mustOpenWithRetry(dsn string) *sql.DB {
-	var db *sql.DB
+func mustOpenWithRetry(dsn string, maxOpen, maxIdle, lifeMin int) *gorm.DB {
+	var db *gorm.DB
 	var err error
 	backoff := []time.Duration{time.Millisecond * 200, time.Millisecond * 500, time.Second, time.Second * 2, time.Second * 5}
+
+	gormConfig := &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Silent),
+	}
+
 	for i := 0; i < len(backoff); i++ {
-		db, err = sql.Open("mysql", dsn)
+		db, err = gorm.Open(mysql.Open(dsn), gormConfig)
 		if err == nil {
-			pingCtx, cancel := context.WithTimeout(context.Background(), time.Second*2)
-			err = db.PingContext(pingCtx)
-			cancel()
+			sqlDB, err := db.DB()
 			if err == nil {
-				return db
+				sqlDB.SetMaxOpenConns(maxOpen)
+				sqlDB.SetMaxIdleConns(maxIdle)
+				sqlDB.SetConnMaxLifetime(time.Duration(lifeMin) * time.Minute)
+
+				pingCtx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+				err = sqlDB.PingContext(pingCtx)
+				cancel()
+				if err == nil {
+					return db
+				}
 			}
 		}
 		time.Sleep(backoff[i])

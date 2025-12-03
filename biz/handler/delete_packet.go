@@ -5,11 +5,12 @@ package handler
 import (
 	"context"
 	"fmt"
-	"github.com/cloudwego/hertz/pkg/app"
-	"github.com/cloudwego/hertz/pkg/protocol/consts"
 	"log"
 	packet "packet_cloud/biz/model/hertz/packet"
 	"packet_cloud/service/readwriter"
+
+	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/cloudwego/hertz/pkg/protocol/consts"
 )
 
 // DeletePacket .
