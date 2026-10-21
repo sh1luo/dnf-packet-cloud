@@ -79,14 +79,14 @@ func TestRejectedMutationsDoNotChangeStorage(t *testing.T) {
 		status                    int
 	}{
 		{"POST", "/v1/packet/upload", validUpload, "", 401},
-		{"DELETE", "/v1/packet/delete", `{"from":1,"to":2}`, "Bearer wrong", 401},
+		{"POST", "/v1/packet/upload", validUpload, "Bearer wrong", 401},
 		{"POST", "/v1/packet/mupload", `{}`, "Bearer test-secret", 400},
 		{"POST", "/v1/packet/mupload", `{"mcloud_packet":null}`, "Bearer test-secret", 400},
 		{"POST", "/v1/packet/mupload", `{"mcloud_packet":{"channel":[]}}`, "Bearer test-secret", 400},
 		{"POST", "/v1/packet/upload", strings.Replace(validUpload, `{"id":0,"content":"original"}`, "null", 1), "Bearer test-secret", 400},
 		{"POST", "/v1/packet/upload", strings.Replace(validUpload, "测试", strings.Repeat("长", 65), 1), "Bearer test-secret", 400},
-		{"DELETE", "/v1/packet/delete", `{"from":0,"to":1}`, "Bearer test-secret", 400},
-		{"DELETE", "/v1/packet/delete", `{"from":2,"to":1}`, "Bearer test-secret", 400},
+		{"DELETE", "/v1/packet/delete", `{"from":0,"to":1}`, "", 400},
+		{"DELETE", "/v1/packet/delete", `{"from":2,"to":1}`, "", 400},
 	} {
 		r := request(h, tc.method, tc.path, tc.body, tc.token)
 		if r.Code != tc.status {
@@ -110,7 +110,7 @@ func TestRejectedMutationsDoNotChangeStorage(t *testing.T) {
 	if r := request(h, "GET", "/v1/packet/list", "", ""); r.Code != 200 {
 		t.Fatalf("public read: %d", r.Code)
 	}
-	if r := request(h, "DELETE", "/v1/packet/delete", `{"from":1,"to":1}`, "Bearer test-secret"); r.Code != 200 {
+	if r := request(h, "DELETE", "/v1/packet/delete", `{"from":1,"to":1}`, ""); r.Code != 200 {
 		t.Fatalf("delete: %d", r.Code)
 	}
 	items, err = repo.List(context.Background())

@@ -36,6 +36,6 @@ func main() {
 	h.StaticFile("favicon.ico", "./html/packet/favicon.ico")
 
 	register(h)
-	log.Printf("packet cloud listening on %s (storage=%s, write authorization=%t)", cfg.HostPorts, cfg.StorageMedia, cfg.WriteToken != "")
+	log.Printf("packet cloud listening on %s (storage=%s, upload authorization=%t)", cfg.HostPorts, cfg.StorageMedia, cfg.WriteToken != "")
 	h.Spin()
 }

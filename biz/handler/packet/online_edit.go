@@ -18,6 +18,5 @@ func OnlineEdit(ctx context.Context, c *app.RequestContext) {
 		c.String(http.StatusInternalServerError, "数据包加载失败，请稍后刷新重试。")
 		return
 	}
-	authEnabled, _ := c.Get("authEnabled")
-	c.HTML(http.StatusOK, "packet/online_edit.html", utils.H{"packets": packets, "authEnabled": authEnabled})
+	c.HTML(http.StatusOK, "packet/online_edit.html", utils.H{"packets": packets})
 }

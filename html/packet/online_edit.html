@@ -76,11 +76,6 @@
         .search-wrap { position: relative; }
         .search-symbol { position: absolute; left: 14px; top: 14px; width: 13px; height: 13px; border: 1.7px solid #718591; border-radius: 50%; pointer-events: none; }
         .search-symbol::after { content: ""; position: absolute; width: 6px; height: 1.7px; background: #718591; transform: rotate(45deg); right: -4px; bottom: -2px; }
-        .auth-panel { display: flex; align-items: center; gap: 24px; padding: 18px 24px; background: #f3faf9; border-top: 1px solid #dcece9; }
-        .auth-copy { flex: 1; }
-        .auth-copy strong { font-size: 13px; }
-        .auth-copy p { color: var(--muted); font-size: 12px; margin-top: 3px; }
-        .token-field { width: min(100%, 340px); }
         .batch { border-top: 1px solid var(--line); padding: 0 24px; }
         .batch summary { padding: 17px 0; color: var(--text); font-size: 13px; font-weight: 600; }
         .batch summary span { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 12px; }
@@ -137,8 +132,6 @@
             .topbar-inner { padding: 16px 24px; }
             .workspace { padding: 26px 24px; }
             .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .auth-panel { align-items: start; flex-direction: column; gap: 12px; }
-            .token-field { width: 100%; }
             .toolbar { grid-template-columns: minmax(0, 1fr) minmax(130px, 180px); }
             .toolbar > .button { grid-column: 2; }
             .batch-fields { grid-template-columns: 1fr 1fr; }
@@ -156,7 +149,7 @@
             .stat-value { font-size: 27px; }
             .toolbar { grid-template-columns: 1fr; padding: 18px; }
             .toolbar > .button { grid-column: auto; }
-            .auth-panel, .list-heading, .pagination { padding: 18px; }
+            .list-heading, .pagination { padding: 18px; }
             .batch { padding: 0 18px; }
             .batch summary span { display: block; margin: 4px 0 0; }
             .batch-fields { grid-template-columns: minmax(0, 1fr); }
@@ -177,7 +170,7 @@
             <span class="brand-mark" aria-hidden="true">P</span>
             <div><span class="brand-name">PACKET CLOUD</span><span class="brand-caption">数据包管理工作台</span></div>
         </div>
-        <span class="environment">{{ if .authEnabled }}删除操作已启用鉴权{{ else }}删除操作未启用鉴权{{ end }}</span>
+        <span class="environment">后台管理</span>
     </div>
 </header>
 <main id="main" class="workspace" tabindex="-1">
@@ -211,18 +204,6 @@
             </div>
             <button class="button" id="reset-filters" type="button" data-lock disabled>重置筛选</button>
         </div>
-        {{ if .authEnabled }}
-        <div class="auth-panel">
-            <div class="auth-copy">
-                <strong>受保护的管理操作</strong>
-                <p id="token-help">删除时需要 Bearer 令牌，仅用于本页请求，不会写入浏览器存储。刷新后需重新输入。</p>
-            </div>
-            <div class="token-field">
-                <label for="admin-token">管理令牌</label>
-                <input id="admin-token" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="仅输入令牌，不含 Bearer 前缀" aria-describedby="token-help" data-lock disabled>
-            </div>
-        </div>
-        {{ end }}
         <details class="batch">
             <summary>按 ID 范围删除<span>高风险操作，提交前需再次确认</span></summary>
             <form id="range-form" class="batch-form" novalidate>
@@ -314,7 +295,6 @@
         const pageSize = byId("page-size");
         const fromInput = byId("from");
         const toInput = byId("to");
-        const tokenInput = byId("admin-token");
         const dialog = byId("delete-dialog");
         const confirmButton = byId("confirm-delete");
         const refreshButton = byId("refresh-button");
@@ -425,24 +405,12 @@
             search.focus();
         }
 
-        function validateToken() {
-            if (!tokenInput) return true;
-            const valid = tokenInput.value.trim().length > 0;
-            tokenInput.setAttribute("aria-invalid", String(!valid));
-            if (!valid) {
-                announce("请输入管理令牌后再执行删除。", "error");
-                tokenInput.focus();
-            }
-            return valid;
-        }
-
         function openConfirmation(from, to, trigger, name) {
             if (state.busy || dialog.open) return;
             if (parsePacketId(from) === null || parsePacketId(to) === null || from > to) {
                 announce("删除范围无效，请使用有效的正整数 ID。", "error");
                 return;
             }
-            if (!validateToken()) return;
             const count = rows.filter((row) => row.id !== null && row.id >= from && row.id <= to).length;
             state.pending = { from, to, trigger };
             byId("dialog-title").textContent = from === to ? "确认删除数据包？" : "确认删除此 ID 范围？";
@@ -491,14 +459,8 @@
         byId("confirm-form").addEventListener("submit", async (event) => {
             event.preventDefault();
             if (state.busy || !state.pending || !dialog.open) return;
-            if (!validateToken()) {
-                dialog.close();
-                if (tokenInput) tokenInput.focus();
-                return;
-            }
             const { from, to } = state.pending;
             const headers = { "Content-Type": "application/json", "Accept": "application/json" };
-            if (tokenInput && tokenInput.value.trim()) headers.Authorization = "Bearer " + tokenInput.value.trim();
             state.busy = true;
             updateControls();
             dialogFeedback.textContent = "";
@@ -580,16 +542,9 @@
             if (state.busy) return;
             refreshButton.disabled = true;
             refreshButton.textContent = "正在刷新...";
-            if (tokenInput) tokenInput.value = "";
             announce("正在重新加载列表...", "loading");
             window.location.reload();
         });
-        if (tokenInput) {
-            tokenInput.value = "";
-            tokenInput.addEventListener("input", () => tokenInput.removeAttribute("aria-invalid"));
-            window.addEventListener("pagehide", () => { tokenInput.value = ""; });
-            window.addEventListener("pageshow", () => { tokenInput.value = ""; });
-        }
         rebuildRegions();
         render();
     })();

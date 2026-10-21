@@ -31,18 +31,18 @@ func Repository(c *app.RequestContext) readwriter.Repository {
 	return value.(readwriter.Repository)
 }
 
-// AuthorizeWrites leaves reads public and protects all mutation methods when
-// a token is configured. Tokens are never rendered into the management page.
+// AuthorizeWrites protects uploads when a token is configured.
+// Backend packet deletion intentionally does not require a token.
 func AuthorizeWrites(token string) app.HandlerFunc {
 	expected := sha256.Sum256([]byte(token))
 	return func(ctx context.Context, c *app.RequestContext) {
-		c.Set("authEnabled", token != "")
 		c.Header("X-Content-Type-Options", "nosniff")
 		c.Header("Referrer-Policy", "same-origin")
 		c.Header("X-Frame-Options", "DENY")
 		c.Header("Cache-Control", "no-store")
 		method := string(c.Method())
-		if token != "" && method != http.MethodGet && method != http.MethodHead && method != http.MethodOptions {
+		adminDelete := method == http.MethodDelete && string(c.Path()) == "/v1/packet/delete"
+		if token != "" && !adminDelete && method != http.MethodGet && method != http.MethodHead && method != http.MethodOptions {
 			fields := strings.Fields(string(c.GetHeader("Authorization")))
 			if len(fields) != 2 || !strings.EqualFold(fields[0], "Bearer") {
 				unauthorized(c)

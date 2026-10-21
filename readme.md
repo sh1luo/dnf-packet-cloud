@@ -33,7 +33,7 @@ CI 在 macOS、Linux 上检查格式、race、vet 与构建，并用独立 MySQL
 | `StorageMedia` | `STORAGE_MEDIA` | `lfs`，可选 `mysql` |
 | `PacketsFilePath` | `PACKETS_FILE_PATH` | `./packets` |
 | `HostPorts` | `PACKET_HOST_PORTS` | `127.0.0.1:8080` |
-| `WriteToken` | `PACKET_WRITE_TOKEN` | 空，设置后所有写接口要求 Bearer token |
+| `WriteToken` | `PACKET_WRITE_TOKEN` | 空，设置后上传接口要求 Bearer token；后台删除不需要令牌 |
 | `MySQL.DSN` | `MYSQL_DSN` | MySQL 主库 DSN，mysql 模式必填 |
 | `MySQL.ReadDSN` | `MYSQL_READ_DSN` | 兼容旧配置；当前全部读取主库保证写后可见 |
 
@@ -49,7 +49,7 @@ MYSQL_DSN='user:password@tcp(127.0.0.1:3306)/packet_cloud?charset=utf8mb4&parseT
 go run .
 ```
 
-默认只监听本机。需要远程访问时显式设置 `PACKET_HOST_PORTS=0.0.0.0:8080`，并通过 HTTPS 反向代理访问、配置写令牌。启用令牌后，旧上传客户端需补充 `Authorization: Bearer <token>`。读取接口仍公开；管理页令牌只在当前页使用，不写入浏览器存储。
+默认只监听本机。需要远程访问时显式设置 `PACKET_HOST_PORTS=0.0.0.0:8080`。启用上传令牌后，旧上传客户端需补充 `Authorization: Bearer <token>`。读取和后台删除不要求令牌；管理页直接确认删除，保留范围校验与失败提示。
 
 ## HTTP 接口
 
@@ -59,7 +59,7 @@ go run .
 | GET | `/v1/packet/get/:id` | 完整数据包 JSON 经原有 CBC 格式加密，放入 `user_packets` |
 | POST | `/v1/packet/upload` | `{"cloud_packet":{...}}`，由服务端生成云包 ID |
 | POST | `/v1/packet/mupload` | `{"mcloud_packet":{...,"channel":[...]}}`，一次事务上传 1～9 个频道 |
-| DELETE | `/v1/packet/delete` | `{"from":1,"to":10}`，包含两端的正整数范围 |
+| DELETE | `/v1/packet/delete` | `{"from":1,"to":10}`，包含两端的正整数范围，无需令牌 |
 | GET | `/v1/packet/edit` | 管理页 |
 | GET | `/healthz` | 进程存活探针，不代表数据库实时可用性 |
 
@@ -75,7 +75,7 @@ curl -X POST http://127.0.0.1:8080/v1/packet/upload \
 
 批量频道仍按原位置映射为：跨1、跨2、跨3A、跨3B、跨4、跨5、跨6、跨7、跨8。提供部分数组表示该映射的前 N 项。
 
-兼容性变更：详情 ID 以路径为准，同时提供 query `id` 时必须与路径一致。非法参数返回 HTTP 400，未找到返回 404，令牌缺失/错误返回 401，存储失败返回 500，错误体统一为 `{"code":状态码,"msg":"说明"}`。批量上传成功从 `null` 改为 `{"code":0,"msg":"批量上传成功"}`，删除成功显式包含 `code:0`。客户端应同时检查 HTTP 状态与业务码。
+兼容性变更：详情 ID 以路径为准，同时提供 query `id` 时必须与路径一致。非法参数返回 HTTP 400，未找到返回 404，启用鉴权的上传接口令牌缺失/错误返回 401，存储失败返回 500，错误体统一为 `{"code":状态码,"msg":"说明"}`。批量上传成功从 `null` 改为 `{"code":0,"msg":"批量上传成功"}`，删除成功显式包含 `code:0`。客户端应同时检查 HTTP 状态与业务码。
 
 ## 数据与运维
 

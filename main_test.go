@@ -46,7 +46,7 @@ func TestManagementTemplateAndGeneratedRoutes(t *testing.T) {
 		t.Fatalf("page: %d %s", r.Code, r.Body)
 	}
 	body := r.Body.String()
-	if !strings.Contains(body, "&lt;script&gt;") || !strings.Contains(body, `id="admin-token"`) ||
+	if !strings.Contains(body, "&lt;script&gt;") || strings.Contains(body, `id="admin-token"`) ||
 		strings.Contains(body, "never-render-content") || strings.Contains(body, "never-render-secret") {
 		t.Fatal("page failed escaping, summary or secret isolation")
 	}
