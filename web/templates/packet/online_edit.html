@@ -8,118 +8,127 @@
     <title>云端数据包管理 | Packet Cloud</title>
     <style>
         :root {
-            --navy: #12283e;
-            --text: #20384b;
-            --muted: #5f7181;
-            --teal: #087d76;
-            --line: #dce5eb;
+            --text: #242b3a;
+            --muted: #6b7282;
+            --blue: #3762e4;
+            --line: #e6e9f0;
             --surface: #ffffff;
-            --danger: #b52f3b;
+            --danger: #c73944;
         }
         * { box-sizing: border-box; }
         [hidden] { display: none !important; }
         body {
             margin: 0;
-            background: #f3f6f9;
+            background: #f5f6fa;
             color: var(--text);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
             font-size: 14px;
-            line-height: 1.6;
+            line-height: 1.5;
             -webkit-font-smoothing: antialiased;
         }
         button, input, select { font: inherit; }
-        button, input, select, summary { -webkit-tap-highlight-color: transparent; }
-        button, summary { cursor: pointer; }
+        button, input, select { -webkit-tap-highlight-color: transparent; }
+        button { cursor: pointer; }
         button { min-height: 44px; }
         button:disabled, input:disabled, select:disabled { cursor: not-allowed; opacity: .55; }
-        :focus-visible { outline: 3px solid #168fbe; outline-offset: 3px; }
-        a { color: var(--teal); }
+        :focus-visible { outline: 3px solid #8ba8ff; outline-offset: 3px; }
+        a { color: var(--blue); }
         h1, h2, h3, p { margin: 0; }
+        .icon { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
         .skip-link { position: fixed; top: -100px; left: 16px; z-index: 10; padding: 12px 20px; background: white; }
         .skip-link:focus { top: 12px; }
         .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-        .topbar { background: var(--navy); color: white; border-bottom: 3px solid var(--teal); }
+        .topbar { background: white; border-bottom: 1px solid var(--line); }
         .topbar-inner, .workspace { width: min(1440px, 100%); margin: 0 auto; }
-        .topbar-inner { min-height: 76px; padding: 16px 40px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-        .brand { display: flex; align-items: center; gap: 13px; }
-        .brand-mark { display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid #55818b; border-radius: 11px; color: #94e6d9; font-weight: 750; font-size: 16px; }
-        .brand-name { display: block; letter-spacing: .13em; font-size: 13px; font-weight: 750; }
-        .brand-caption { color: #b7c8d6; font-size: 11px; letter-spacing: .1em; }
-        .environment { color: #d4e6ed; font-size: 12px; padding: 6px 12px; border: 1px solid #426071; border-radius: 20px; }
-        .workspace { padding: 34px 40px 28px; }
-        .page-heading { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-bottom: 26px; }
-        .eyebrow { color: var(--teal); font-size: 11px; font-weight: 750; letter-spacing: .16em; margin-bottom: 7px; }
-        h1 { color: var(--navy); font-size: clamp(25px, 3vw, 32px); line-height: 1.3; letter-spacing: -.03em; }
-        .subtitle { color: var(--muted); margin-top: 10px; }
-        .button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--line); border-radius: 9px; padding: 10px 17px; background: white; color: var(--text); font-weight: 600; white-space: nowrap; }
-        .button:hover:not(:disabled) { background: #edf4f6; border-color: #afc9cf; }
-        .button-primary { background: var(--teal); color: white; border-color: var(--teal); }
-        .button-primary:hover:not(:disabled) { background: #06665f; border-color: #06665f; }
-        .button-danger { color: var(--danger); background: #fff8f8; border-color: #edc8cc; }
-        .button-danger:hover:not(:disabled) { background: #ffedef; border-color: #cf8790; }
+        .topbar-inner { min-height: 66px; padding: 12px 36px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+        .brand { display: flex; align-items: center; gap: 11px; }
+        .brand-mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; background: var(--blue); color: white; }
+        .brand-mark .icon { width: 22px; height: 22px; }
+        .brand-name { display: block; font-size: 15px; font-weight: 700; letter-spacing: -.02em; }
+        .brand-caption { color: var(--muted); font-size: 11px; }
+        .environment { display: flex; align-items: center; gap: 7px; color: #5c6576; font-size: 12px; padding: 6px 11px; background: #f5f6fa; border: 1px solid var(--line); border-radius: 6px; }
+        .workspace { padding: 26px 36px 28px; }
+        .page-heading { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-bottom: 22px; }
+        .eyebrow { color: var(--muted); font-size: 12px; margin-bottom: 9px; }
+        .eyebrow span { color: #b3b8c4; padding: 0 8px; }
+        h1 { font-size: clamp(24px, 3vw, 28px); line-height: 1.3; letter-spacing: -.035em; }
+        .subtitle { color: var(--muted); font-size: 13px; margin-top: 8px; }
+        .button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid #dce1eb; border-radius: 7px; padding: 9px 15px; background: white; color: var(--text); font-size: 13px; font-weight: 550; white-space: nowrap; transition: background .15s, border-color .15s; }
+        .button:hover:not(:disabled) { background: #f5f7fc; border-color: #b8c5e4; }
+        .button-primary { background: var(--blue); color: white; border-color: var(--blue); }
+        .button-primary:hover:not(:disabled) { background: #294ec3; border-color: #294ec3; }
         .button-destructive { background: var(--danger); border-color: var(--danger); color: white; }
-        .button-destructive:hover:not(:disabled) { background: #952530; border-color: #952530; }
-        .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
-        .stat { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 13px; padding: 19px 22px; overflow: hidden; }
-        .stat:first-child { background: var(--navy); border-color: var(--navy); color: white; }
-        .stat-label { font-size: 12px; color: var(--muted); }
-        .stat:first-child .stat-label, .stat:first-child .stat-note { color: #c0d4df; }
-        .stat-value { display: block; margin: 5px 0 2px; font-size: 31px; line-height: 1.3; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.035em; }
-        .stat-note { font-size: 11px; color: var(--muted); }
-        .panel { border: 1px solid var(--line); background: var(--surface); border-radius: 14px; box-shadow: 0 5px 20px #12283e04; }
-        .toolbar { display: grid; grid-template-columns: minmax(240px, 1fr) minmax(150px, 210px) auto; gap: 16px; padding: 22px 24px; align-items: end; }
-        label { display: block; font-size: 12px; font-weight: 650; margin-bottom: 7px; }
-        input, select { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #bdccd6; border-radius: 8px; padding: 10px 12px; color: var(--text); background: white; }
-        input::placeholder { color: #70818e; }
+        .button-destructive:hover:not(:disabled) { background: #ac2934; border-color: #ac2934; }
+        .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 16px; }
+        .stat { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 15px 20px; overflow: hidden; }
+        .stat-label { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--muted); }
+        .stat-label .icon { width: 15px; height: 15px; color: #929aaf; }
+        .stat:first-child .stat-label .icon { color: var(--blue); }
+        .stat-value { display: block; margin-top: 7px; font-size: 27px; line-height: 1.2; font-weight: 650; font-variant-numeric: tabular-nums; letter-spacing: -.035em; }
+        .stat:first-child .stat-value { color: var(--blue); }
+        .panel { border: 1px solid var(--line); background: var(--surface); border-radius: 12px; box-shadow: 0 2px 5px #25334d03; }
+        .toolbar { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(150px, 210px) auto; gap: 14px; padding: 0 24px 20px; align-items: end; }
+        label { display: block; font-size: 12px; font-weight: 550; margin-bottom: 7px; }
+        input, select { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #d8deea; border-radius: 7px; padding: 10px 12px; color: var(--text); background: white; font-size: 13px; }
+        input:hover, select:hover { border-color: #b6c1d8; }
+        input::placeholder { color: #939aab; }
         input[aria-invalid="true"] { border-color: var(--danger); }
         input[type="search"] { padding-left: 37px; }
         .search-wrap { position: relative; }
-        .search-symbol { position: absolute; left: 14px; top: 14px; width: 13px; height: 13px; border: 1.7px solid #718591; border-radius: 50%; pointer-events: none; }
-        .search-symbol::after { content: ""; position: absolute; width: 6px; height: 1.7px; background: #718591; transform: rotate(45deg); right: -4px; bottom: -2px; }
-        .batch { border-top: 1px solid var(--line); padding: 0 24px; }
-        .batch summary { padding: 17px 0; color: var(--text); font-size: 13px; font-weight: 600; }
-        .batch summary span { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 12px; }
-        .batch-form { padding: 0 0 20px; }
-        .batch-fields { display: grid; grid-template-columns: minmax(140px, 240px) minmax(140px, 240px) auto; align-items: end; justify-content: start; gap: 14px; }
+        .search-symbol { position: absolute; left: 13px; top: 13px; color: #8b94a7; pointer-events: none; }
+        .batch { display: flex; align-items: center; gap: 30px; padding: 16px 24px; border-top: 1px solid #f3dde0; background: #fff7f7; }
+        .batch-title { display: flex; align-items: center; gap: 11px; flex: none; }
+        .batch-mark { display: grid; place-items: center; width: 36px; height: 36px; background: #ffe8ea; color: var(--danger); border-radius: 8px; }
+        .batch-title h3 { font-size: 14px; font-weight: 650; }
+        .batch-title p { color: #95636a; font-size: 11px; margin-top: 3px; }
+        .batch-form { flex: 1; min-width: 0; }
+        .batch-fields { display: grid; grid-template-columns: minmax(120px, 185px) minmax(120px, 185px) auto; align-items: end; justify-content: start; gap: 12px; }
+        .batch-fields label { color: #79545b; }
+        .batch-fields input { border-color: #ead1d5; }
+        .batch-fields input[aria-invalid="true"] { border-color: var(--danger); }
         .help { font-size: 12px; color: var(--muted); margin-top: 10px; }
-        .feedback { min-height: 24px; margin: 14px 2px; font-size: 13px; overflow-wrap: anywhere; }
+        .batch .help { font-size: 11px; color: #95636a; margin-top: 8px; }
+        .feedback { min-height: 20px; margin: 0 2px 14px; font-size: 12px; overflow-wrap: anywhere; }
         .feedback[data-kind="success"] { color: #086d52; }
         .feedback[data-kind="error"] { color: var(--danger); }
-        .feedback[data-kind="loading"]::before { content: ""; display: inline-block; width: 11px; height: 11px; margin-right: 8px; border: 2px solid #b6d7d4; border-top-color: var(--teal); border-radius: 50%; vertical-align: -2px; animation: spin .8s linear infinite; }
-        .list-heading { padding: 21px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
-        h2 { font-size: 16px; color: var(--navy); }
+        .feedback[data-kind="loading"]::before { content: ""; display: inline-block; width: 11px; height: 11px; margin-right: 8px; border: 2px solid #d9e3ff; border-top-color: var(--blue); border-radius: 50%; vertical-align: -2px; animation: spin .8s linear infinite; }
+        .list-heading { padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+        h2 { font-size: 15px; font-weight: 650; }
         .list-title { display: flex; align-items: center; gap: 10px; }
-        .count-badge { border-radius: 6px; padding: 2px 8px; background: #eaf5f3; color: #076e66; font-size: 12px; font-variant-numeric: tabular-nums; }
+        .count-badge { border-radius: 5px; padding: 2px 8px; background: #eef2ff; color: #4764bd; font-size: 12px; font-variant-numeric: tabular-nums; }
         .list-note { color: var(--muted); font-size: 12px; }
         .table-scroll { position: relative; overflow-x: auto; overscroll-behavior-x: contain; border-top: 1px solid var(--line); }
         table { width: 100%; min-width: 1020px; border-collapse: collapse; table-layout: fixed; text-align: left; }
-        th { padding: 13px 18px; background: #f7f9fb; font-size: 11px; color: var(--muted); font-weight: 650; letter-spacing: .04em; }
-        td { padding: 17px 18px; border-top: 1px solid #eaf0f4; font-size: 13px; vertical-align: middle; overflow-wrap: anywhere; }
+        th { padding: 13px 18px; background: #f8f9fc; font-size: 12px; color: #737e93; font-weight: 550; }
+        td { padding: 12px 18px; border-top: 1px solid #edf0f5; font-size: 13px; vertical-align: middle; overflow-wrap: anywhere; }
         th:first-child, td:first-child { padding-left: 24px; }
-        th:last-child, td:last-child { padding-right: 24px; text-align: right; }
-        tbody tr:hover { background: #f8fcfc; }
-        .id-cell { color: #536c7e; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; font-variant-numeric: tabular-nums; }
-        .name-cell { font-weight: 650; color: var(--navy); }
-        .region-badge { display: inline-block; border: 1px solid #d1e6e3; background: #f1f8f7; color: #126c64; border-radius: 5px; padding: 2px 8px; font-size: 11px; }
+        .action-cell { position: sticky; right: 0; padding-right: 24px; text-align: right; background: white; z-index: 1; }
+        th.action-cell { background: #f8f9fc; z-index: 2; }
+        .action-cell::before { content: ""; position: absolute; top: 0; bottom: 0; left: -9px; width: 9px; background: linear-gradient(to right, transparent, #25334d08); pointer-events: none; }
+        tbody tr:hover, tbody tr:hover .action-cell { background: #f7f9ff; }
+        .id-cell { color: #818a9c; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; font-variant-numeric: tabular-nums; }
+        .name-cell { font-weight: 550; }
+        .region-badge { display: inline-block; background: #eef2ff; color: #4866ba; border-radius: 5px; padding: 3px 9px; font-size: 11px; white-space: nowrap; }
         .region-badge:empty { display: none; }
         .time-cell { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
-        .delete-button { color: var(--danger); background: transparent; border: 1px solid transparent; border-radius: 7px; padding: 7px 10px; }
-        .delete-button:hover:not(:disabled) { background: #fff1f2; border-color: #f0d4d7; }
+        .delete-button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-width: 76px; color: var(--danger); background: #fff5f5; border: 1px solid #f1cdd1; border-radius: 6px; padding: 8px 10px; font-size: 12px; font-weight: 550; white-space: nowrap; }
+        .delete-button .icon { width: 15px; height: 15px; }
+        .delete-button:hover:not(:disabled) { background: #ffe8eb; border-color: #da9da4; }
         .empty-state { padding: 62px 24px; text-align: center; border-top: 1px solid var(--line); }
-        .empty-mark { display: grid; place-items: center; width: 52px; height: 52px; margin: 0 auto 16px; border: 1px solid #d3e4e7; border-radius: 15px; background: #f2f8f8; font-size: 22px; color: var(--teal); }
-        .empty-state h3 { color: var(--navy); font-size: 16px; }
+        .empty-mark { display: grid; place-items: center; width: 52px; height: 52px; margin: 0 auto 16px; border: 1px solid #dce4fb; border-radius: 12px; background: #f4f6ff; font-size: 22px; color: var(--blue); }
+        .empty-state h3 { font-size: 16px; }
         .empty-state p { color: var(--muted); margin: 8px 0 18px; }
         .pagination { padding: 17px 24px; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
         .pagination-info { color: var(--muted); font-size: 12px; }
         .pagination-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
         .page-size { display: flex; gap: 8px; align-items: center; margin-right: 12px; }
         .page-size label { margin: 0; white-space: nowrap; color: var(--muted); font-weight: 400; }
-        .page-size select { width: 77px; }
+        .page-size select { width: 72px; }
         .page-position { min-width: 85px; text-align: center; font-size: 12px; font-variant-numeric: tabular-nums; }
         .footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 22px 2px 0; font-size: 11px; color: var(--muted); }
-        dialog { width: min(480px, calc(100% - 32px)); max-height: calc(100dvh - 32px); padding: 28px; border: 1px solid var(--line); border-radius: 16px; color: var(--text); box-shadow: 0 24px 90px #0b20334d; overflow-y: auto; }
-        dialog::backdrop { background: #0b203399; }
-        .dialog-tag { color: var(--danger); font-weight: 650; font-size: 11px; letter-spacing: .12em; margin-bottom: 8px; }
+        dialog { width: min(480px, calc(100% - 32px)); max-height: calc(100dvh - 32px); padding: 28px; border: 1px solid var(--line); border-radius: 14px; color: var(--text); box-shadow: 0 24px 90px #1f2d4640; overflow-y: auto; }
+        dialog::backdrop { background: #202a4666; backdrop-filter: blur(3px); }
+        .dialog-tag { display: flex; align-items: center; gap: 7px; color: var(--danger); font-weight: 550; font-size: 12px; margin-bottom: 12px; }
         dialog h2 { font-size: 22px; margin-bottom: 14px; }
         .confirmation-detail { overflow-wrap: anywhere; }
         .warning { padding: 12px 14px; margin: 16px 0; border: 1px solid #eed8b1; border-radius: 8px; background: #fff9ef; color: #79511b; font-size: 12px; }
@@ -127,33 +136,50 @@
         .dialog-feedback { color: var(--danger); font-size: 13px; overflow-wrap: anywhere; }
         noscript p { padding: 16px; margin-bottom: 18px; border: 1px solid #eed8b1; border-radius: 9px; background: #fff9ef; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        @media (prefers-reduced-motion: reduce) { .feedback[data-kind="loading"]::before { animation: none; } }
+        @media (prefers-reduced-motion: reduce) {
+            .feedback[data-kind="loading"]::before { animation: none; }
+            .button { transition: none; }
+        }
         @media (max-width: 900px) {
-            .topbar-inner { padding: 16px 24px; }
-            .workspace { padding: 26px 24px; }
-            .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .toolbar { grid-template-columns: minmax(0, 1fr) minmax(130px, 180px); }
-            .toolbar > .button { grid-column: 2; }
-            .batch-fields { grid-template-columns: 1fr 1fr; }
-            .batch-fields > .button { grid-column: 1 / -1; justify-self: start; }
-            .list-heading { align-items: start; flex-direction: column; gap: 6px; }
+            .topbar-inner { padding: 12px 24px; }
+            .workspace { padding: 24px; }
+            .batch { gap: 20px; }
+            .batch-fields { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; }
+            .batch-title p { display: none; }
+            .batch-mark { display: none; }
+            .action-cell { padding: 10px 12px; }
         }
         @media (max-width: 540px) {
-            .topbar-inner { padding: 14px 16px; }
+            .topbar-inner { min-height: 60px; padding: 10px 16px; }
+            .brand-caption { display: none; }
             .environment { font-size: 11px; padding: 5px 9px; }
-            .workspace { padding: 24px 16px; }
-            .page-heading { align-items: start; flex-direction: column; gap: 18px; }
-            .page-heading > .button { width: 100%; }
-            .stats { gap: 10px; }
-            .stat { padding: 15px; }
-            .stat-value { font-size: 27px; }
-            .toolbar { grid-template-columns: 1fr; padding: 18px; }
-            .toolbar > .button { grid-column: auto; }
-            .list-heading, .pagination { padding: 18px; }
-            .batch { padding: 0 18px; }
-            .batch summary span { display: block; margin: 4px 0 0; }
-            .batch-fields { grid-template-columns: minmax(0, 1fr); }
-            .batch-fields > .button { width: 100%; }
+            .workspace { padding: 20px 16px; }
+            .page-heading { align-items: center; gap: 12px; margin-bottom: 18px; }
+            .page-heading > .button { padding: 9px 11px; }
+            .page-heading .button .icon { display: none; }
+            .eyebrow { display: none; }
+            .subtitle { max-width: 220px; font-size: 12px; margin-top: 6px; }
+            .stats { gap: 7px; margin-bottom: 12px; }
+            .stat { padding: 12px 9px; }
+            .stat-label { font-size: 11px; }
+            .stat-label .icon { display: none; }
+            .stat-value { font-size: 23px; margin-top: 5px; }
+            .feedback { font-size: 11px; margin-bottom: 12px; }
+            .toolbar { grid-template-columns: minmax(0, 1fr) auto; gap: 12px 9px; padding: 0 16px 16px; }
+            .toolbar > :first-child { grid-column: 1 / -1; }
+            .toolbar > .button { padding: 9px 12px; }
+            .list-heading, .pagination { padding: 16px; }
+            .list-heading { align-items: start; flex-direction: column; gap: 6px; }
+            .list-heading > .list-note { font-size: 11px; }
+            .batch { display: block; padding: 16px; }
+            .batch-title { margin-bottom: 12px; }
+            .batch-mark { display: grid; width: 28px; height: 28px; border-radius: 6px; }
+            .batch-mark .icon { width: 16px; height: 16px; }
+            .batch-title p { display: block; margin: 0 0 0 auto; }
+            .batch-title > div:last-child { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex: 1; }
+            .batch-fields { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+            .batch-fields > .button { grid-column: 1 / -1; width: 100%; }
+            .batch .help { line-height: 1.65; }
             .pagination-actions { width: 100%; gap: 8px; }
             .page-size { width: 100%; margin: 0 0 4px; }
             .pagination-actions > .button { flex: 1; }
@@ -163,38 +189,51 @@
     </style>
 </head>
 <body>
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" style="position:absolute">
+    <symbol id="icon-box" viewBox="0 0 24 24"><path d="m12 3 9 5v8l-9 5-9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8M7.5 5.5l9 5"/></symbol>
+    <symbol id="icon-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.3 7a7 7 0 0 1 11.5-1L20 9M4 15l2.2 3A7 7 0 0 0 17.7 17"/></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></symbol>
+    <symbol id="icon-region" viewBox="0 0 24 24"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+    <symbol id="icon-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></symbol>
+    <symbol id="icon-trash" viewBox="0 0 24 24"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></symbol>
+</svg>
 <a class="skip-link" href="#main">跳转到主要内容</a>
 <header class="topbar">
     <div class="topbar-inner">
         <div class="brand">
-            <span class="brand-mark" aria-hidden="true">P</span>
-            <div><span class="brand-name">PACKET CLOUD</span><span class="brand-caption">数据包管理工作台</span></div>
+            <span class="brand-mark" aria-hidden="true"><svg class="icon"><use href="#icon-box"/></svg></span>
+            <div><span class="brand-name">Packet Cloud</span><span class="brand-caption">云端数据包管理</span></div>
         </div>
-        <span class="environment">后台管理</span>
+        <span class="environment"><svg class="icon" aria-hidden="true"><use href="#icon-box"/></svg>管理工作台</span>
     </div>
 </header>
 <main id="main" class="workspace" tabindex="-1">
     <div class="page-heading">
         <div>
-            <p class="eyebrow">云端管理 / 数据包</p>
-            <h1>云端数据包管理</h1>
-            <p class="subtitle">集中检索上传记录，清晰确认每一次数据清理。</p>
+            <p class="eyebrow">工作台<span>/</span>数据包</p>
+            <h1>数据包管理</h1>
+            <p class="subtitle">检索上传记录，清理云端数据包。</p>
         </div>
-        <button class="button" id="refresh-button" type="button" data-lock disabled>刷新列表</button>
+        <button class="button" id="refresh-button" type="button" data-lock disabled><svg class="icon" aria-hidden="true"><use href="#icon-refresh"/></svg>刷新列表</button>
     </div>
     <noscript><p>JavaScript 未启用。以下展示全部数据包摘要；搜索、分页与删除功能需要启用 JavaScript。</p></noscript>
     <section class="stats" aria-label="数据概览">
-        <div class="stat"><p class="stat-label">数据包总数</p><strong class="stat-value" id="total-count">{{ len .packets }}</strong><p class="stat-note">当前已加载的全部记录</p></div>
-        <div class="stat"><p class="stat-label">筛选结果</p><strong class="stat-value" id="match-count">{{ len .packets }}</strong><p class="stat-note">匹配搜索与区域条件</p></div>
-        <div class="stat"><p class="stat-label">覆盖区域</p><strong class="stat-value" id="region-count">-</strong><p class="stat-note">按已填写区域去重</p></div>
-        <div class="stat"><p class="stat-label">上传者</p><strong class="stat-value" id="uploader-count">-</strong><p class="stat-note">按已填写上传者去重</p></div>
+        <div class="stat"><p class="stat-label"><svg class="icon" aria-hidden="true"><use href="#icon-box"/></svg>数据包总数</p><strong class="stat-value" id="total-count">{{ len .packets }}</strong></div>
+        <div class="stat"><p class="stat-label"><svg class="icon" aria-hidden="true"><use href="#icon-search"/></svg>筛选结果</p><strong class="stat-value" id="match-count">{{ len .packets }}</strong></div>
+        <div class="stat"><p class="stat-label"><svg class="icon" aria-hidden="true"><use href="#icon-region"/></svg>覆盖区域</p><strong class="stat-value" id="region-count">-</strong></div>
+        <div class="stat"><p class="stat-label"><svg class="icon" aria-hidden="true"><use href="#icon-user"/></svg>上传者</p><strong class="stat-value" id="uploader-count">-</strong></div>
     </section>
-    <section class="panel" aria-label="筛选与管理">
+    <p id="feedback" class="feedback" role="status" aria-live="polite" aria-atomic="true">列表已加载，可刷新获取最新记录。</p>
+    <section class="panel" aria-labelledby="list-heading">
+        <div class="list-heading">
+            <div class="list-title"><h2 id="list-heading">数据包列表</h2><span class="count-badge" id="list-count">{{ len .packets }} 条</span></div>
+            <p class="list-note" id="table-help">每行右侧可删除 · 横向滚动查看更多</p>
+        </div>
         <div class="toolbar" role="search" aria-label="筛选数据包">
             <div>
                 <label for="search">搜索数据包</label>
                 <div class="search-wrap">
-                    <span class="search-symbol" aria-hidden="true"></span>
+                    <svg class="icon search-symbol" aria-hidden="true"><use href="#icon-search"/></svg>
                     <input id="search" type="search" placeholder="搜索 ID、名称、上传者或频道" autocomplete="off" aria-controls="packet-table" data-lock disabled>
                 </div>
             </div>
@@ -204,46 +243,42 @@
             </div>
             <button class="button" id="reset-filters" type="button" data-lock disabled>重置筛选</button>
         </div>
-        <details class="batch">
-            <summary>按 ID 范围删除<span>高风险操作，提交前需再次确认</span></summary>
+        <section class="batch" aria-labelledby="batch-heading">
+            <div class="batch-title">
+                <span class="batch-mark" aria-hidden="true"><svg class="icon"><use href="#icon-trash"/></svg></span>
+                <div><h3 id="batch-heading">批量删除</h3><p>按 ID 范围清理</p></div>
+            </div>
             <form id="range-form" class="batch-form" novalidate>
                 <div class="batch-fields">
                     <div>
-                        <label for="from">起始 ID（包含）</label>
+                        <label for="from">起始 ID</label>
                         <input id="from" type="text" inputmode="numeric" pattern="[0-9]+" maxlength="10" placeholder="例如 100" autocomplete="off" aria-describedby="range-help" required data-lock disabled>
                     </div>
                     <div>
-                        <label for="to">结束 ID（包含）</label>
+                        <label for="to">结束 ID</label>
                         <input id="to" type="text" inputmode="numeric" pattern="[0-9]+" maxlength="10" placeholder="例如 120" autocomplete="off" aria-describedby="range-help" required data-lock disabled>
                     </div>
-                    <button class="button button-danger" id="range-button" type="submit" data-lock disabled>检查并删除范围</button>
+                    <button class="button button-destructive" id="range-button" type="submit" data-lock disabled><svg class="icon" aria-hidden="true"><use href="#icon-trash"/></svg>删除此范围</button>
                 </div>
-                <p class="help" id="range-help">仅接受 1 至 2147483647 的整数，起始 ID 不得大于结束 ID。范围删除不受搜索、区域筛选或分页限制。</p>
+                <p class="help" id="range-help">包含起止 ID，不受筛选与分页限制。提交后需确认，删除不可撤销。</p>
             </form>
-        </details>
-    </section>
-    <p id="feedback" class="feedback" role="status" aria-live="polite" aria-atomic="true">列表为当前加载时的快照；可随时刷新获取最新数据。</p>
-    <section class="panel" aria-labelledby="list-heading">
-        <div class="list-heading">
-            <div class="list-title"><h2 id="list-heading">数据包列表</h2><span class="count-badge" id="list-count">{{ len .packets }} 条</span></div>
-            <p class="list-note" id="table-help">仅展示摘要，不加载数据包内容。窄屏可横向滚动查看完整信息。</p>
-        </div>
+        </section>
         <div class="table-scroll" id="table-scroll" role="region" aria-label="数据包表格，可横向滚动" aria-describedby="table-help" tabindex="0">
             <table id="packet-table">
                 <caption class="sr-only">云端数据包摘要及删除操作</caption>
-                <colgroup><col style="width: 11%"><col style="width: 11%"><col style="width: 24%"><col style="width: 13%"><col style="width: 14%"><col style="width: 18%"><col style="width: 9%"></colgroup>
-                <thead><tr><th scope="col">ID</th><th scope="col">区域</th><th scope="col">数据包名称</th><th scope="col">频道</th><th scope="col">上传者</th><th scope="col">上传时间</th><th scope="col">操作</th></tr></thead>
+                <colgroup><col style="width: 8%"><col style="width: 24%"><col style="width: 10%"><col style="width: 11%"><col style="width: 15%"><col style="width: 19%"><col style="width: 13%"></colgroup>
+                <thead><tr><th scope="col">ID</th><th scope="col">数据包名称</th><th scope="col">区域</th><th scope="col">频道</th><th scope="col">上传者</th><th scope="col">上传时间</th><th class="action-cell" scope="col">删除操作</th></tr></thead>
                 <tbody id="packet-rows">
                 {{ range .packets }}
                 {{ if . }}
                 <tr>
                     <td class="id-cell" data-field="id">{{ .Id }}</td>
-                    <td><span class="region-badge" data-field="region">{{ .Region }}</span>{{ if not .Region }}<span class="list-note">未填写</span>{{ end }}</td>
                     <td class="name-cell"><span data-field="name">{{ .Name }}</span>{{ if not .Name }}<span class="list-note">未命名</span>{{ end }}</td>
+                    <td><span class="region-badge" data-field="region">{{ .Region }}</span>{{ if not .Region }}<span class="list-note">未填写</span>{{ end }}</td>
                     <td><span data-field="channel">{{ .Channel }}</span>{{ if not .Channel }}<span class="list-note">未填写</span>{{ end }}</td>
                     <td><span data-field="uploader">{{ .Uploader }}</span>{{ if not .Uploader }}<span class="list-note">未填写</span>{{ end }}</td>
                     <td class="time-cell"><span data-field="time">{{ .Time }}</span>{{ if not .Time }}<span class="list-note">未填写</span>{{ end }}</td>
-                    <td><button class="delete-button" type="button" data-delete data-lock disabled>删除<span class="sr-only">数据包 {{ .Id }}</span></button></td>
+                    <td class="action-cell"><button class="delete-button" type="button" data-delete data-lock disabled><svg class="icon" aria-hidden="true"><use href="#icon-trash"/></svg>删除<span class="sr-only">数据包 {{ .Id }}</span></button></td>
                 </tr>
                 {{ end }}
                 {{ end }}
@@ -273,7 +308,7 @@
 </main>
 <dialog id="delete-dialog" aria-labelledby="dialog-title" aria-describedby="confirmation-detail confirmation-warning">
     <form id="confirm-form">
-        <p class="dialog-tag">删除确认</p>
+        <p class="dialog-tag"><svg class="icon" aria-hidden="true"><use href="#icon-trash"/></svg>删除确认</p>
         <h2 id="dialog-title">确认删除数据包？</h2>
         <p class="confirmation-detail" id="confirmation-detail"></p>
         <p class="warning" id="confirmation-warning">此操作不可撤销。匹配数量基于当前列表快照，服务端可能已有新增或变更；范围内的记录均会被删除，包括未显示的记录。</p>
