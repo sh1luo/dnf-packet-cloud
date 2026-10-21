@@ -2,23 +2,22 @@ package main
 
 import (
 	"context"
-	"html/template"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"packet_cloud/biz/handler"
 	packet "packet_cloud/biz/model/hertz/packet"
-	"packet_cloud/service/readwriter"
+	"packet_cloud/internal/storage"
+	"packet_cloud/web"
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
-	"github.com/cloudwego/hertz/pkg/app/server/render"
 	"github.com/cloudwego/hertz/pkg/common/ut"
 )
 
 func TestManagementTemplateAndGeneratedRoutes(t *testing.T) {
-	repo, err := readwriter.NewLocalFileSystem(filepath.Join(t.TempDir(), "packets"))
+	repo, err := storage.NewLocalFileSystem(filepath.Join(t.TempDir(), "packets"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,13 +32,12 @@ func TestManagementTemplateAndGeneratedRoutes(t *testing.T) {
 	h := server.New()
 	// ut.PerformRequest bypasses the HTTP protocol initialization that normally
 	// installs the HTML renderer on each RequestContext.
-	templates := template.Must(template.ParseGlob("html/packet/*"))
 	h.Use(func(ctx context.Context, c *app.RequestContext) {
-		c.HTMLRender = &render.HTMLProduction{Template: templates}
+		c.HTMLRender = web.Renderer()
 		c.Next(ctx)
 	})
 	h.Use(handler.WithRepository(repo), handler.AuthorizeWrites("never-render-secret"))
-	h.LoadHTMLGlob("html/packet/*")
+	web.Register(h)
 	register(h)
 	r := ut.PerformRequest(h.Engine, "GET", "/v1/packet/edit", nil)
 	if r.Code != 200 {
@@ -57,5 +55,30 @@ func TestManagementTemplateAndGeneratedRoutes(t *testing.T) {
 	r = ut.PerformRequest(h.Engine, "GET", "/healthz", nil)
 	if r.Code != 200 {
 		t.Fatalf("healthz: %d", r.Code)
+	}
+}
+
+func TestEmbeddedAssetsOutsideRepository(t *testing.T) {
+	t.Chdir(t.TempDir())
+	h := server.New()
+	h.Use(func(ctx context.Context, c *app.RequestContext) {
+		c.HTMLRender = web.Renderer()
+		c.Next(ctx)
+	})
+	web.Register(h)
+	h.GET("/page", func(_ context.Context, c *app.RequestContext) {
+		c.HTML(200, "packet/online_edit.html", map[string]any{"packets": []*packet.CloudPacket{}})
+	})
+	r := ut.PerformRequest(h.Engine, "GET", "/page", nil)
+	if r.Code != 200 || !strings.Contains(r.Body.String(), "云端数据包管理") {
+		t.Fatalf("embedded page: %d %s", r.Code, r.Body)
+	}
+	r = ut.PerformRequest(h.Engine, "GET", "/favicon.ico", nil)
+	if r.Code != 200 || r.Body.Len() == 0 {
+		t.Fatalf("embedded icon: %d", r.Code)
+	}
+	r = ut.PerformRequest(h.Engine, "HEAD", "/favicon.ico", nil)
+	if r.Code != 200 || r.Body.Len() != 0 {
+		t.Fatalf("embedded icon HEAD: %d, bytes=%d", r.Code, r.Body.Len())
 	}
 }

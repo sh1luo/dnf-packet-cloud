@@ -9,26 +9,26 @@ import (
 	"net/http"
 	"strings"
 
-	"packet_cloud/service/readwriter"
+	"packet_cloud/internal/storage"
 
 	"github.com/cloudwego/hertz/pkg/app"
 )
 
 const repositoryKey = "packet.repository"
 
-func WithRepository(repo readwriter.Repository) app.HandlerFunc {
+func WithRepository(repo storage.Repository) app.HandlerFunc {
 	return func(ctx context.Context, c *app.RequestContext) {
 		c.Set(repositoryKey, repo)
 		c.Next(ctx)
 	}
 }
 
-func Repository(c *app.RequestContext) readwriter.Repository {
+func Repository(c *app.RequestContext) storage.Repository {
 	value, exists := c.Get(repositoryKey)
 	if !exists {
 		panic("packet repository middleware is not installed")
 	}
-	return value.(readwriter.Repository)
+	return value.(storage.Repository)
 }
 
 // AuthorizeWrites protects uploads when a token is configured.
@@ -70,11 +70,11 @@ func JSONError(c *app.RequestContext, status int, message string) {
 
 func storageError(c *app.RequestContext, err error) {
 	switch {
-	case errors.Is(err, readwriter.ErrNotFound):
+	case errors.Is(err, storage.ErrNotFound):
 		JSONError(c, http.StatusNotFound, "数据包不存在")
-	case errors.Is(err, readwriter.ErrInvalidPacket):
+	case errors.Is(err, storage.ErrInvalidPacket):
 		JSONError(c, http.StatusBadRequest, "数据包字段不合法")
-	case errors.Is(err, readwriter.ErrIDExhausted):
+	case errors.Is(err, storage.ErrIDExhausted):
 		JSONError(c, http.StatusConflict, "数据包 ID 已达到上限")
 	default:
 		log.Printf("packet storage operation failed: %v", err)

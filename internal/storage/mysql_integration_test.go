@@ -1,4 +1,4 @@
-package readwriter
+package storage
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"packet_cloud/biz/model/hertz/packet"
-	cfg "packet_cloud/config"
+	cfg "packet_cloud/internal/config"
 
 	mysqldriver "github.com/go-sql-driver/mysql"
 	"google.golang.org/protobuf/proto"
@@ -20,7 +20,7 @@ import (
 // Explicit opt-in only:
 //
 //	TEST_MYSQL_DSN='packet_test:packet_test@tcp(127.0.0.1:33067)/packet_cloud_test?parseTime=true' \
-//	  go test ./service/readwriter -run '^TestMySQLIntegration$' -count=1 -v
+//	  go test ./internal/storage -run '^TestMySQLIntegration$' -count=1 -v
 //
 // The database must already exist and end in "_test". Application config and
 // MYSQL_DSN are never read. Tests clean only rows tagged with their unique uploader.

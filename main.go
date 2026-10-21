@@ -5,8 +5,9 @@ package main
 import (
 	"log"
 	"packet_cloud/biz/handler"
-	"packet_cloud/config"
-	"packet_cloud/service/readwriter"
+	"packet_cloud/internal/config"
+	"packet_cloud/internal/storage"
+	"packet_cloud/web"
 
 	"github.com/cloudwego/hertz/pkg/app/server"
 )
@@ -16,7 +17,7 @@ func main() {
 		log.Fatalf("configuration error: %v", err)
 	}
 	cfg := config.Get()
-	repo, err := readwriter.Open(*cfg)
+	repo, err := storage.Open(*cfg)
 	if err != nil {
 		log.Fatalf("open packet storage: %v", err)
 	}
@@ -31,10 +32,7 @@ func main() {
 	)
 	h.Use(handler.WithRepository(repo), handler.AuthorizeWrites(cfg.WriteToken))
 
-	h.LoadHTMLGlob("html/packet/*")
-
-	h.StaticFile("favicon.ico", "./html/packet/favicon.ico")
-
+	web.Register(h)
 	register(h)
 	log.Printf("packet cloud listening on %s (storage=%s, upload authorization=%t)", cfg.HostPorts, cfg.StorageMedia, cfg.WriteToken != "")
 	h.Spin()

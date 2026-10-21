@@ -1,4 +1,4 @@
-package readwriter
+package storage
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"packet_cloud/biz/model/hertz/packet"
-	cfg "packet_cloud/config"
+	cfg "packet_cloud/internal/config"
 
 	mysqldriver "github.com/go-sql-driver/mysql"
 	mysqlgorm "gorm.io/driver/mysql"

@@ -1,4 +1,5 @@
-package util
+// Package cryptoutil preserves the legacy client encryption protocol.
+package cryptoutil
 
 import (
 	"bytes"

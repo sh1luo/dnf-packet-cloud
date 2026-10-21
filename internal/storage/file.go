@@ -1,4 +1,4 @@
-package readwriter
+package storage
 
 import (
 	"context"

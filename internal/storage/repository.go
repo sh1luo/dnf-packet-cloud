@@ -1,4 +1,5 @@
-package readwriter
+// Package storage owns packet persistence and atomic mutations.
+package storage
 
 import (
 	"context"
@@ -8,7 +9,7 @@ import (
 
 	"google.golang.org/protobuf/proto"
 	"packet_cloud/biz/model/hertz/packet"
-	cfg "packet_cloud/config"
+	cfg "packet_cloud/internal/config"
 )
 
 var (

@@ -1,4 +1,4 @@
-package readwriter
+package storage
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"packet_cloud/biz/model/hertz/packet"
-	cfg "packet_cloud/config"
+	cfg "packet_cloud/internal/config"
 	"strings"
 	"time"
 

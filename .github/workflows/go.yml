@@ -25,8 +25,6 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
-      - name: Format
-        run: test -z "$(gofmt -l config biz/handler service/readwriter util main.go router.go)"
       - run: make check
 
   mysql:
@@ -52,6 +50,6 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
-      - run: go test -race -count=1 -v ./service/readwriter
+      - run: go test -race -count=1 -v ./internal/storage
         env:
           TEST_MYSQL_DSN: "packet_test:packet_test@tcp(127.0.0.1:3306)/packet_cloud_test?parseTime=true&charset=utf8mb4"

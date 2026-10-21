@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	packet "packet_cloud/biz/model/hertz/packet"
-	"packet_cloud/service/readwriter"
-	"packet_cloud/util"
+	"packet_cloud/internal/cryptoutil"
+	"packet_cloud/internal/storage"
 
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/cloudwego/hertz/pkg/common/ut"
@@ -18,9 +18,9 @@ import (
 
 const validUpload = `{"cloud_packet":{"name":"测试","region":"跨1","channel":"1","uploader":"tester","time":"2026-10-21","user_packets":[{"id":0,"content":"original"}]}}`
 
-func testServer(t *testing.T, token string) (*server.Hertz, readwriter.Repository) {
+func testServer(t *testing.T, token string) (*server.Hertz, storage.Repository) {
 	t.Helper()
-	repo, err := readwriter.NewLocalFileSystem(filepath.Join(t.TempDir(), "packets"))
+	repo, err := storage.NewLocalFileSystem(filepath.Join(t.TempDir(), "packets"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,7 +58,7 @@ func TestUploadListAndPathIDPreserveContent(t *testing.T) {
 	if r.Code != 200 || response.UserPackets == "" {
 		t.Fatalf("get path ID: %d %s", r.Code, r.Body)
 	}
-	plain, err := util.AESCBCDecrypt([]byte(response.UserPackets))
+	plain, err := cryptoutil.AESCBCDecrypt([]byte(response.UserPackets))
 	if err != nil || !strings.Contains(plain, "original") {
 		t.Fatalf("content lost after list: %s %v", plain, err)
 	}
@@ -121,7 +121,7 @@ func TestRejectedMutationsDoNotChangeStorage(t *testing.T) {
 
 func TestPersistedCorruptionIsServerFailure(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "packets")
-	repo, err := readwriter.NewLocalFileSystem(path)
+	repo, err := storage.NewLocalFileSystem(path)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -4,7 +4,7 @@ package handler
 
 import (
 	"context"
-	"packet_cloud/util"
+	"packet_cloud/internal/cryptoutil"
 	"strconv"
 
 	"github.com/bytedance/sonic"
@@ -43,7 +43,7 @@ func GetPacketByID(ctx context.Context, c *app.RequestContext) {
 		storageError(c, err)
 		return
 	}
-	encrypted, err := util.AESCBCEncrypt(bs)
+	encrypted, err := cryptoutil.AESCBCEncrypt(bs)
 	if err != nil {
 		storageError(c, err)
 		return

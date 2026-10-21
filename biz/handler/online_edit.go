@@ -1,4 +1,4 @@
-package packet
+package handler
 
 import (
 	"context"
@@ -6,13 +6,12 @@ import (
 	"github.com/cloudwego/hertz/pkg/common/utils"
 	"log"
 	"net/http"
-	"packet_cloud/biz/handler"
 )
 
 // OnlineEdit .
 // @router /edit [GET]
 func OnlineEdit(ctx context.Context, c *app.RequestContext) {
-	packets, err := handler.Repository(c).List(ctx)
+	packets, err := Repository(c).List(ctx)
 	if err != nil {
 		log.Println("[OnlineEdit] read file error", err)
 		c.String(http.StatusInternalServerError, "数据包加载失败，请稍后刷新重试。")

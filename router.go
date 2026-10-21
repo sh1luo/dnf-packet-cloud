@@ -6,12 +6,12 @@ import (
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
-	"packet_cloud/biz/handler/packet"
+	"packet_cloud/biz/handler"
 )
 
 // customizeRegister registers customize routers.
 func customizedRegister(r *server.Hertz) {
-	r.GET("/v1/packet/edit", packet.OnlineEdit)
+	r.GET("/v1/packet/edit", handler.OnlineEdit)
 	r.GET("/healthz", func(_ context.Context, c *app.RequestContext) {
 		c.JSON(200, map[string]string{"status": "ok"})
 	})
