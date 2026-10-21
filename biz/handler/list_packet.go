@@ -4,8 +4,6 @@ package handler
 
 import (
 	"context"
-	"log"
-	"packet_cloud/service/readwriter"
 
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 
@@ -17,24 +15,16 @@ import (
 // ListPacket .
 // @router /v1/packet/list [GET]
 func ListPacket(ctx context.Context, c *app.RequestContext) {
-	var err error
 	var req packet.ListPacketReq
-	err = c.BindAndValidate(&req)
-	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+	if err := c.BindAndValidate(&req); err != nil {
+		JSONError(c, consts.StatusBadRequest, "请求格式不正确")
 		return
 	}
 
-	packets, err := readwriter.ReadPacket(readwriter.LFS)
+	packets, err := Repository(c).List(ctx)
 	if err != nil {
-		log.Printf("[ListPacket] username=%s, time=%s, error=%s\n", req.Username, req.Time, err)
-		c.JSON(consts.StatusInternalServerError, err)
+		storageError(c, err)
 		return
-	}
-
-	// 数据太多，行数据改为接口获取
-	for i := range packets {
-		packets[i].UserPackets = make([]*packet.UserPacket, 0)
 	}
 
 	c.JSON(consts.StatusOK, &packet.ListPacketResp{

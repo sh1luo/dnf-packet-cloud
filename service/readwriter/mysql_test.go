@@ -1,43 +1,56 @@
 package readwriter
 
 import (
+	"os"
+	"strings"
+	"sync"
 	"testing"
-	packet "packet_cloud/biz/model/hertz/packet"
-	cfg "packet_cloud/config"
-	_ "github.com/go-sql-driver/mysql"
+
+	"gorm.io/gorm/schema"
 )
 
-func TestMySQLReadWrite(t *testing.T) {
-	x := cfg.Get()
-	if x.MySQL.DSN == "" {
-		t.Skip("mysql dsn missing")
-	}
-	s := NewMySQLStorageFromConfig()
-	if s == nil {
-		t.Skip("mysql not available")
-	}
-	w := s.writeDB
-	if w == nil {
-		t.Skip("no write db")
-	}
-	
-    // Clean up
-    if err := w.Exec("DELETE FROM user_packets").Error; err != nil {
-        t.Logf("cleanup user_packets error: %v", err)
-    }
-    if err := w.Exec("DELETE FROM cloud_packets").Error; err != nil {
-        t.Logf("cleanup cloud_packets error: %v", err)
-    }
-
-	in := []*packet.CloudPacket{{Id: 1, Region: "r", Name: "n", Channel: "c", Uploader: "u", Time: "t", UserPackets: []*packet.UserPacket{{Id: 10, Name: "a", Content: "b", Size: 2, SendTiming: "s"}}}}
-	if err := s.SavePacket(in); err != nil {
-		t.Fatalf("save: %v", err)
-	}
-	out, err := s.ReadPacket()
+func TestMySQLChildIdentityIsScopedToParent(t *testing.T) {
+	child, err := schema.Parse(&UserPacketModel{}, &sync.Map{}, schema.NamingStrategy{})
 	if err != nil {
-		t.Fatalf("read: %v", err)
+		t.Fatal(err)
 	}
-	if len(out) != 1 || out[0].Id != 1 || len(out[0].UserPackets) != 1 || out[0].UserPackets[0].Content != "b" {
-		t.Fatalf("mismatch: %+v", out)
+	ordinal := child.LookUpField("Ordinal")
+	if len(child.PrimaryFields) != 2 || !child.LookUpField("CloudPacketID").PrimaryKey || ordinal == nil || !ordinal.PrimaryKey {
+		t.Fatalf("child identity must be (cloud_packet_id,ordinal): %v", child.PrimaryFieldDBNames)
+	}
+	if child.LookUpField("ID").AutoIncrement || child.LookUpField("ID").PrimaryKey {
+		t.Fatal("child IDs must never be automatically assigned")
+	}
+}
+
+func TestMySQLParentIdentityIsAutoIncrement(t *testing.T) {
+	parent, err := schema.Parse(&CloudPacketModel{}, &sync.Map{}, schema.NamingStrategy{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !parent.LookUpField("ID").AutoIncrement {
+		t.Fatal("parent ID must be allocated by the database")
+	}
+}
+
+func TestMySQLForeignKeyMatchesSQLSchema(t *testing.T) {
+	parent, err := schema.Parse(&CloudPacketModel{}, &sync.Map{}, schema.NamingStrategy{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if name := parent.Relationships.Relations["UserPackets"].ParseConstraint().Name; name != "fk_user_packets_cloud_packet_id" {
+		t.Fatalf("AutoMigrate must not create a duplicate FK: %s", name)
+	}
+}
+
+func TestMySQLSchemaHasOrdinalIdentity(t *testing.T) {
+	b, err := os.ReadFile("../../db/schema.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, fragment := range []string{"`id` INT NOT NULL AUTO_INCREMENT", "`ordinal` INT NOT NULL", "PRIMARY KEY (`cloud_packet_id`,`ordinal`)"} {
+		if !strings.Contains(string(b), fragment) {
+			t.Errorf("schema missing %s", fragment)
+		}
 	}
 }

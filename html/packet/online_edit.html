@@ -1,215 +1,599 @@
 {{ define "packet/online_edit.html" }}
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>SSR Mode Cloud Package Management</title>
-    <link rel="shortcut" href="favicon.ico">
-
+    <meta name="color-scheme" content="light">
+    <title>云端数据包管理 | Packet Cloud</title>
     <style>
+        :root {
+            --navy: #12283e;
+            --text: #20384b;
+            --muted: #5f7181;
+            --teal: #087d76;
+            --line: #dce5eb;
+            --surface: #ffffff;
+            --danger: #b52f3b;
+        }
+        * { box-sizing: border-box; }
+        [hidden] { display: none !important; }
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f8f9fa;
             margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh; /* 页面铺满屏幕 */
-        }
-
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            padding: 20px;
-            box-sizing: border-box;
-            margin-top: 30px;
-        }
-
-        h2 {
-            text-align: center;
-            color: #007bff;
-            margin-bottom: 30px;
-        }
-
-        .btn-danger {
-            background-color: #dc3545;
-            color: #fff;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            display: block; /* 让按钮居中 */
-            margin: 20px auto; /* 让按钮居中 */
-            font-size: 16px;
-        }
-
-        .btn-danger:hover {
-            background-color: #c82333;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        label {
-            font-weight: bold;
-            color: #333;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        input[type="number"] {
-            width: calc(100% - 20px);
-            max-width: 300px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin: 0 auto;
-            display: block;
-            box-sizing: border-box;
-        }
-
-        table {
-            table-layout: fixed;
-            border-collapse: collapse;
-            width: 100%;
-            margin-top: 15px;
-            background-color: #fff;
-            border: 1px solid #dee2e6;
-        }
-
-        th, td {
-            border: 1px solid #dee2e6;
-            padding: 10px;
-            text-align: left;
-            font-size: 16px;
-            line-height: 1.5;
-            word-wrap: break-word; /* 单词换行 */
-        }
-
-        th {
-            background-color: #e9ecef;
-            font-weight: bold;
-            color: #333;
-        }
-
-        tbody tr:nth-child(odd) {
-            background-color: #f8f9fa;
-        }
-
-        tbody tr:hover {
-            background-color: #f1f1f1;
-        }
-
-        .custom-btn {
-            padding: 8px 12px;
+            background: #f3f6f9;
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
             font-size: 14px;
-            border-radius: 4px;
-            border: none;
-            background-color: #dc3545;
-            color: #fff;
-            cursor: pointer;
-            transition: background-color 0.3s;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
         }
-
-        .custom-btn:hover {
-            background-color: #c82333;
+        button, input, select { font: inherit; }
+        button, input, select, summary { -webkit-tap-highlight-color: transparent; }
+        button, summary { cursor: pointer; }
+        button { min-height: 44px; }
+        button:disabled, input:disabled, select:disabled { cursor: not-allowed; opacity: .55; }
+        :focus-visible { outline: 3px solid #168fbe; outline-offset: 3px; }
+        a { color: var(--teal); }
+        h1, h2, h3, p { margin: 0; }
+        .skip-link { position: fixed; top: -100px; left: 16px; z-index: 10; padding: 12px 20px; background: white; }
+        .skip-link:focus { top: 12px; }
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+        .topbar { background: var(--navy); color: white; border-bottom: 3px solid var(--teal); }
+        .topbar-inner, .workspace { width: min(1440px, 100%); margin: 0 auto; }
+        .topbar-inner { min-height: 76px; padding: 16px 40px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+        .brand { display: flex; align-items: center; gap: 13px; }
+        .brand-mark { display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid #55818b; border-radius: 11px; color: #94e6d9; font-weight: 750; font-size: 16px; }
+        .brand-name { display: block; letter-spacing: .13em; font-size: 13px; font-weight: 750; }
+        .brand-caption { color: #b7c8d6; font-size: 11px; letter-spacing: .1em; }
+        .environment { color: #d4e6ed; font-size: 12px; padding: 6px 12px; border: 1px solid #426071; border-radius: 20px; }
+        .workspace { padding: 34px 40px 28px; }
+        .page-heading { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-bottom: 26px; }
+        .eyebrow { color: var(--teal); font-size: 11px; font-weight: 750; letter-spacing: .16em; margin-bottom: 7px; }
+        h1 { color: var(--navy); font-size: clamp(25px, 3vw, 32px); line-height: 1.3; letter-spacing: -.03em; }
+        .subtitle { color: var(--muted); margin-top: 10px; }
+        .button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--line); border-radius: 9px; padding: 10px 17px; background: white; color: var(--text); font-weight: 600; white-space: nowrap; }
+        .button:hover:not(:disabled) { background: #edf4f6; border-color: #afc9cf; }
+        .button-primary { background: var(--teal); color: white; border-color: var(--teal); }
+        .button-primary:hover:not(:disabled) { background: #06665f; border-color: #06665f; }
+        .button-danger { color: var(--danger); background: #fff8f8; border-color: #edc8cc; }
+        .button-danger:hover:not(:disabled) { background: #ffedef; border-color: #cf8790; }
+        .button-destructive { background: var(--danger); border-color: var(--danger); color: white; }
+        .button-destructive:hover:not(:disabled) { background: #952530; border-color: #952530; }
+        .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 13px; padding: 19px 22px; overflow: hidden; }
+        .stat:first-child { background: var(--navy); border-color: var(--navy); color: white; }
+        .stat-label { font-size: 12px; color: var(--muted); }
+        .stat:first-child .stat-label, .stat:first-child .stat-note { color: #c0d4df; }
+        .stat-value { display: block; margin: 5px 0 2px; font-size: 31px; line-height: 1.3; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.035em; }
+        .stat-note { font-size: 11px; color: var(--muted); }
+        .panel { border: 1px solid var(--line); background: var(--surface); border-radius: 14px; box-shadow: 0 5px 20px #12283e04; }
+        .toolbar { display: grid; grid-template-columns: minmax(240px, 1fr) minmax(150px, 210px) auto; gap: 16px; padding: 22px 24px; align-items: end; }
+        label { display: block; font-size: 12px; font-weight: 650; margin-bottom: 7px; }
+        input, select { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #bdccd6; border-radius: 8px; padding: 10px 12px; color: var(--text); background: white; }
+        input::placeholder { color: #70818e; }
+        input[aria-invalid="true"] { border-color: var(--danger); }
+        input[type="search"] { padding-left: 37px; }
+        .search-wrap { position: relative; }
+        .search-symbol { position: absolute; left: 14px; top: 14px; width: 13px; height: 13px; border: 1.7px solid #718591; border-radius: 50%; pointer-events: none; }
+        .search-symbol::after { content: ""; position: absolute; width: 6px; height: 1.7px; background: #718591; transform: rotate(45deg); right: -4px; bottom: -2px; }
+        .auth-panel { display: flex; align-items: center; gap: 24px; padding: 18px 24px; background: #f3faf9; border-top: 1px solid #dcece9; }
+        .auth-copy { flex: 1; }
+        .auth-copy strong { font-size: 13px; }
+        .auth-copy p { color: var(--muted); font-size: 12px; margin-top: 3px; }
+        .token-field { width: min(100%, 340px); }
+        .batch { border-top: 1px solid var(--line); padding: 0 24px; }
+        .batch summary { padding: 17px 0; color: var(--text); font-size: 13px; font-weight: 600; }
+        .batch summary span { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 12px; }
+        .batch-form { padding: 0 0 20px; }
+        .batch-fields { display: grid; grid-template-columns: minmax(140px, 240px) minmax(140px, 240px) auto; align-items: end; justify-content: start; gap: 14px; }
+        .help { font-size: 12px; color: var(--muted); margin-top: 10px; }
+        .feedback { min-height: 24px; margin: 14px 2px; font-size: 13px; overflow-wrap: anywhere; }
+        .feedback[data-kind="success"] { color: #086d52; }
+        .feedback[data-kind="error"] { color: var(--danger); }
+        .feedback[data-kind="loading"]::before { content: ""; display: inline-block; width: 11px; height: 11px; margin-right: 8px; border: 2px solid #b6d7d4; border-top-color: var(--teal); border-radius: 50%; vertical-align: -2px; animation: spin .8s linear infinite; }
+        .list-heading { padding: 21px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+        h2 { font-size: 16px; color: var(--navy); }
+        .list-title { display: flex; align-items: center; gap: 10px; }
+        .count-badge { border-radius: 6px; padding: 2px 8px; background: #eaf5f3; color: #076e66; font-size: 12px; font-variant-numeric: tabular-nums; }
+        .list-note { color: var(--muted); font-size: 12px; }
+        .table-scroll { position: relative; overflow-x: auto; overscroll-behavior-x: contain; border-top: 1px solid var(--line); }
+        table { width: 100%; min-width: 1020px; border-collapse: collapse; table-layout: fixed; text-align: left; }
+        th { padding: 13px 18px; background: #f7f9fb; font-size: 11px; color: var(--muted); font-weight: 650; letter-spacing: .04em; }
+        td { padding: 17px 18px; border-top: 1px solid #eaf0f4; font-size: 13px; vertical-align: middle; overflow-wrap: anywhere; }
+        th:first-child, td:first-child { padding-left: 24px; }
+        th:last-child, td:last-child { padding-right: 24px; text-align: right; }
+        tbody tr:hover { background: #f8fcfc; }
+        .id-cell { color: #536c7e; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; font-variant-numeric: tabular-nums; }
+        .name-cell { font-weight: 650; color: var(--navy); }
+        .region-badge { display: inline-block; border: 1px solid #d1e6e3; background: #f1f8f7; color: #126c64; border-radius: 5px; padding: 2px 8px; font-size: 11px; }
+        .region-badge:empty { display: none; }
+        .time-cell { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+        .delete-button { color: var(--danger); background: transparent; border: 1px solid transparent; border-radius: 7px; padding: 7px 10px; }
+        .delete-button:hover:not(:disabled) { background: #fff1f2; border-color: #f0d4d7; }
+        .empty-state { padding: 62px 24px; text-align: center; border-top: 1px solid var(--line); }
+        .empty-mark { display: grid; place-items: center; width: 52px; height: 52px; margin: 0 auto 16px; border: 1px solid #d3e4e7; border-radius: 15px; background: #f2f8f8; font-size: 22px; color: var(--teal); }
+        .empty-state h3 { color: var(--navy); font-size: 16px; }
+        .empty-state p { color: var(--muted); margin: 8px 0 18px; }
+        .pagination { padding: 17px 24px; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+        .pagination-info { color: var(--muted); font-size: 12px; }
+        .pagination-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+        .page-size { display: flex; gap: 8px; align-items: center; margin-right: 12px; }
+        .page-size label { margin: 0; white-space: nowrap; color: var(--muted); font-weight: 400; }
+        .page-size select { width: 77px; }
+        .page-position { min-width: 85px; text-align: center; font-size: 12px; font-variant-numeric: tabular-nums; }
+        .footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 22px 2px 0; font-size: 11px; color: var(--muted); }
+        dialog { width: min(480px, calc(100% - 32px)); max-height: calc(100dvh - 32px); padding: 28px; border: 1px solid var(--line); border-radius: 16px; color: var(--text); box-shadow: 0 24px 90px #0b20334d; overflow-y: auto; }
+        dialog::backdrop { background: #0b203399; }
+        .dialog-tag { color: var(--danger); font-weight: 650; font-size: 11px; letter-spacing: .12em; margin-bottom: 8px; }
+        dialog h2 { font-size: 22px; margin-bottom: 14px; }
+        .confirmation-detail { overflow-wrap: anywhere; }
+        .warning { padding: 12px 14px; margin: 16px 0; border: 1px solid #eed8b1; border-radius: 8px; background: #fff9ef; color: #79511b; font-size: 12px; }
+        .dialog-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 22px; }
+        .dialog-feedback { color: var(--danger); font-size: 13px; overflow-wrap: anywhere; }
+        noscript p { padding: 16px; margin-bottom: 18px; border: 1px solid #eed8b1; border-radius: 9px; background: #fff9ef; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) { .feedback[data-kind="loading"]::before { animation: none; } }
+        @media (max-width: 900px) {
+            .topbar-inner { padding: 16px 24px; }
+            .workspace { padding: 26px 24px; }
+            .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .auth-panel { align-items: start; flex-direction: column; gap: 12px; }
+            .token-field { width: 100%; }
+            .toolbar { grid-template-columns: minmax(0, 1fr) minmax(130px, 180px); }
+            .toolbar > .button { grid-column: 2; }
+            .batch-fields { grid-template-columns: 1fr 1fr; }
+            .batch-fields > .button { grid-column: 1 / -1; justify-self: start; }
+            .list-heading { align-items: start; flex-direction: column; gap: 6px; }
+        }
+        @media (max-width: 540px) {
+            .topbar-inner { padding: 14px 16px; }
+            .environment { font-size: 11px; padding: 5px 9px; }
+            .workspace { padding: 24px 16px; }
+            .page-heading { align-items: start; flex-direction: column; gap: 18px; }
+            .page-heading > .button { width: 100%; }
+            .stats { gap: 10px; }
+            .stat { padding: 15px; }
+            .stat-value { font-size: 27px; }
+            .toolbar { grid-template-columns: 1fr; padding: 18px; }
+            .toolbar > .button { grid-column: auto; }
+            .auth-panel, .list-heading, .pagination { padding: 18px; }
+            .batch { padding: 0 18px; }
+            .batch summary span { display: block; margin: 4px 0 0; }
+            .batch-fields { grid-template-columns: minmax(0, 1fr); }
+            .batch-fields > .button { width: 100%; }
+            .pagination-actions { width: 100%; gap: 8px; }
+            .page-size { width: 100%; margin: 0 0 4px; }
+            .pagination-actions > .button { flex: 1; }
+            .dialog-actions > .button { flex: 1; }
+            dialog { padding: 22px; }
         }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <h2>Cloud Package List</h2>
-
-    <div class="form-group">
-        <label for="from">Start Packet ID</label>
-        <input type="number" id="from" placeholder="Start Packet ID">
+<a class="skip-link" href="#main">跳转到主要内容</a>
+<header class="topbar">
+    <div class="topbar-inner">
+        <div class="brand">
+            <span class="brand-mark" aria-hidden="true">P</span>
+            <div><span class="brand-name">PACKET CLOUD</span><span class="brand-caption">数据包管理工作台</span></div>
+        </div>
+        <span class="environment">{{ if .authEnabled }}删除操作已启用鉴权{{ else }}删除操作未启用鉴权{{ end }}</span>
     </div>
-    <div class="form-group">
-        <label for="to">End Packet ID</label>
-        <input type="number" id="to" placeholder="End Packet ID">
+</header>
+<main id="main" class="workspace" tabindex="-1">
+    <div class="page-heading">
+        <div>
+            <p class="eyebrow">云端管理 / 数据包</p>
+            <h1>云端数据包管理</h1>
+            <p class="subtitle">集中检索上传记录，清晰确认每一次数据清理。</p>
+        </div>
+        <button class="button" id="refresh-button" type="button" data-lock disabled>刷新列表</button>
     </div>
-    <button type="submit" class="btn-danger" onclick="delRange()">批量删除</button>
-
-    <table>
-        <thead>
-        <tr>
-            <th style="width: 10%;">ID</th>
-            <th style="width: 10%;">Region</th>
-            <th style="width: 15%;">Name</th>
-            <th style="width: 15%;">Content</th>
-            <th style="width: 15%;">Channel</th>
-            <th style="width: 15%;">Uploader</th>
-            <th style="width: 15%;">Time</th>
-            <th style="width: 10%;">Action</th>
-        </tr>
-        </thead>
-        <tbody>
-        {{ range .packets }}
-        <tr>
-            <td>{{.Id }}</td>
-            <td>{{.Region }}</td>
-            <td>{{.Name }}</td>
-            <td>暂时不可查看</td>
-            <td>{{.Channel }}</td>
-            <td>{{.Uploader }}</td>
-            <td>{{.Time }}</td>
-            <td><button type="submit" class="custom-btn" onclick="deletePacket({{.Id }})">删除</button></td>
-        </tr>
+    <noscript><p>JavaScript 未启用。以下展示全部数据包摘要；搜索、分页与删除功能需要启用 JavaScript。</p></noscript>
+    <section class="stats" aria-label="数据概览">
+        <div class="stat"><p class="stat-label">数据包总数</p><strong class="stat-value" id="total-count">{{ len .packets }}</strong><p class="stat-note">当前已加载的全部记录</p></div>
+        <div class="stat"><p class="stat-label">筛选结果</p><strong class="stat-value" id="match-count">{{ len .packets }}</strong><p class="stat-note">匹配搜索与区域条件</p></div>
+        <div class="stat"><p class="stat-label">覆盖区域</p><strong class="stat-value" id="region-count">-</strong><p class="stat-note">按已填写区域去重</p></div>
+        <div class="stat"><p class="stat-label">上传者</p><strong class="stat-value" id="uploader-count">-</strong><p class="stat-note">按已填写上传者去重</p></div>
+    </section>
+    <section class="panel" aria-label="筛选与管理">
+        <div class="toolbar" role="search" aria-label="筛选数据包">
+            <div>
+                <label for="search">搜索数据包</label>
+                <div class="search-wrap">
+                    <span class="search-symbol" aria-hidden="true"></span>
+                    <input id="search" type="search" placeholder="搜索 ID、名称、上传者或频道" autocomplete="off" aria-controls="packet-table" data-lock disabled>
+                </div>
+            </div>
+            <div>
+                <label for="region">所属区域</label>
+                <select id="region" aria-controls="packet-table" data-lock disabled><option value="">全部区域</option></select>
+            </div>
+            <button class="button" id="reset-filters" type="button" data-lock disabled>重置筛选</button>
+        </div>
+        {{ if .authEnabled }}
+        <div class="auth-panel">
+            <div class="auth-copy">
+                <strong>受保护的管理操作</strong>
+                <p id="token-help">删除时需要 Bearer 令牌，仅用于本页请求，不会写入浏览器存储。刷新后需重新输入。</p>
+            </div>
+            <div class="token-field">
+                <label for="admin-token">管理令牌</label>
+                <input id="admin-token" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="仅输入令牌，不含 Bearer 前缀" aria-describedby="token-help" data-lock disabled>
+            </div>
+        </div>
         {{ end }}
-        </tbody>
-    </table>
-</div>
-
+        <details class="batch">
+            <summary>按 ID 范围删除<span>高风险操作，提交前需再次确认</span></summary>
+            <form id="range-form" class="batch-form" novalidate>
+                <div class="batch-fields">
+                    <div>
+                        <label for="from">起始 ID（包含）</label>
+                        <input id="from" type="text" inputmode="numeric" pattern="[0-9]+" maxlength="10" placeholder="例如 100" autocomplete="off" aria-describedby="range-help" required data-lock disabled>
+                    </div>
+                    <div>
+                        <label for="to">结束 ID（包含）</label>
+                        <input id="to" type="text" inputmode="numeric" pattern="[0-9]+" maxlength="10" placeholder="例如 120" autocomplete="off" aria-describedby="range-help" required data-lock disabled>
+                    </div>
+                    <button class="button button-danger" id="range-button" type="submit" data-lock disabled>检查并删除范围</button>
+                </div>
+                <p class="help" id="range-help">仅接受 1 至 2147483647 的整数，起始 ID 不得大于结束 ID。范围删除不受搜索、区域筛选或分页限制。</p>
+            </form>
+        </details>
+    </section>
+    <p id="feedback" class="feedback" role="status" aria-live="polite" aria-atomic="true">列表为当前加载时的快照；可随时刷新获取最新数据。</p>
+    <section class="panel" aria-labelledby="list-heading">
+        <div class="list-heading">
+            <div class="list-title"><h2 id="list-heading">数据包列表</h2><span class="count-badge" id="list-count">{{ len .packets }} 条</span></div>
+            <p class="list-note" id="table-help">仅展示摘要，不加载数据包内容。窄屏可横向滚动查看完整信息。</p>
+        </div>
+        <div class="table-scroll" id="table-scroll" role="region" aria-label="数据包表格，可横向滚动" aria-describedby="table-help" tabindex="0">
+            <table id="packet-table">
+                <caption class="sr-only">云端数据包摘要及删除操作</caption>
+                <colgroup><col style="width: 11%"><col style="width: 11%"><col style="width: 24%"><col style="width: 13%"><col style="width: 14%"><col style="width: 18%"><col style="width: 9%"></colgroup>
+                <thead><tr><th scope="col">ID</th><th scope="col">区域</th><th scope="col">数据包名称</th><th scope="col">频道</th><th scope="col">上传者</th><th scope="col">上传时间</th><th scope="col">操作</th></tr></thead>
+                <tbody id="packet-rows">
+                {{ range .packets }}
+                {{ if . }}
+                <tr>
+                    <td class="id-cell" data-field="id">{{ .Id }}</td>
+                    <td><span class="region-badge" data-field="region">{{ .Region }}</span>{{ if not .Region }}<span class="list-note">未填写</span>{{ end }}</td>
+                    <td class="name-cell"><span data-field="name">{{ .Name }}</span>{{ if not .Name }}<span class="list-note">未命名</span>{{ end }}</td>
+                    <td><span data-field="channel">{{ .Channel }}</span>{{ if not .Channel }}<span class="list-note">未填写</span>{{ end }}</td>
+                    <td><span data-field="uploader">{{ .Uploader }}</span>{{ if not .Uploader }}<span class="list-note">未填写</span>{{ end }}</td>
+                    <td class="time-cell"><span data-field="time">{{ .Time }}</span>{{ if not .Time }}<span class="list-note">未填写</span>{{ end }}</td>
+                    <td><button class="delete-button" type="button" data-delete data-lock disabled>删除<span class="sr-only">数据包 {{ .Id }}</span></button></td>
+                </tr>
+                {{ end }}
+                {{ end }}
+                </tbody>
+            </table>
+        </div>
+        <div class="empty-state" id="empty-state" {{ if .packets }}hidden{{ end }}>
+            <div class="empty-mark" aria-hidden="true">0</div>
+            <h3 id="empty-title">暂无数据包</h3>
+            <p id="empty-description">当前没有可管理的记录，上传数据包后可刷新列表。</p>
+            <button class="button button-primary" id="empty-reset" type="button" data-lock hidden disabled>清除筛选条件</button>
+        </div>
+        <nav class="pagination" aria-label="数据包分页">
+            <p class="pagination-info" id="page-summary" role="status" aria-live="polite" aria-atomic="true">正在准备分页</p>
+            <div class="pagination-actions">
+                <div class="page-size">
+                    <label for="page-size">每页条数</label>
+                    <select id="page-size" data-lock disabled><option value="20">20</option><option value="50">50</option><option value="100">100</option></select>
+                </div>
+                <button class="button" id="previous-page" type="button" aria-controls="packet-table" data-lock disabled>上一页</button>
+                <span class="page-position" id="page-position">第 0 / 0 页</span>
+                <button class="button" id="next-page" type="button" aria-controls="packet-table" data-lock disabled>下一页</button>
+            </div>
+        </nav>
+    </section>
+    <footer class="footer"><span>Packet Cloud / 管理工作台</span><span>删除不可撤销，请在操作前确认 ID 与范围。</span></footer>
+</main>
+<dialog id="delete-dialog" aria-labelledby="dialog-title" aria-describedby="confirmation-detail confirmation-warning">
+    <form id="confirm-form">
+        <p class="dialog-tag">删除确认</p>
+        <h2 id="dialog-title">确认删除数据包？</h2>
+        <p class="confirmation-detail" id="confirmation-detail"></p>
+        <p class="warning" id="confirmation-warning">此操作不可撤销。匹配数量基于当前列表快照，服务端可能已有新增或变更；范围内的记录均会被删除，包括未显示的记录。</p>
+        <p class="help" id="dialog-status" role="status" aria-live="polite" aria-atomic="true"></p>
+        <p class="dialog-feedback" id="dialog-feedback" role="alert" aria-atomic="true"></p>
+        <div class="dialog-actions">
+            <button class="button" id="cancel-delete" type="button" data-lock autofocus>取消</button>
+            <button class="button button-destructive" id="confirm-delete" type="submit" data-lock>确认删除</button>
+        </div>
+    </form>
+</dialog>
 <script>
-    function delRange() {
-        const from = parseInt(document.getElementById("from").value);
-        const to = parseInt(document.getElementById("to").value);
+    (() => {
+        "use strict";
 
-        deletePackets(from, to);
-    }
+        const byId = (id) => document.getElementById(id);
+        const search = byId("search");
+        const regionSelect = byId("region");
+        const pageSize = byId("page-size");
+        const fromInput = byId("from");
+        const toInput = byId("to");
+        const tokenInput = byId("admin-token");
+        const dialog = byId("delete-dialog");
+        const confirmButton = byId("confirm-delete");
+        const refreshButton = byId("refresh-button");
+        const feedback = byId("feedback");
+        const dialogFeedback = byId("dialog-feedback");
+        const format = (number) => number.toLocaleString("zh-CN");
+        const state = { page: 1, size: 20, region: null, busy: false, pending: null, matches: 0 };
+        let regions = [];
+        let searchTimer;
 
-    function deletePacket(id) {
-        deletePackets(id, id);
-    }
-
-    function deletePackets(from, to) {
-        if (isNaN(from) || isNaN(to) || from > to || from < 0 || to < 0) {
-            alert("Please enter valid number range.");
-            return;
+        function parsePacketId(value) {
+            const text = String(value).trim();
+            if (!/^[0-9]+$/.test(text)) return null;
+            const number = Number(text);
+            return Number.isSafeInteger(number) && number >= 1 && number <= 2147483647 ? number : null;
         }
-        if (confirm("Are you sure you want to delete selected packets?")) {
-            fetch(`/v1/packet/delete`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    from: from,
-                    to: to,
-                }),
-            })
-                .then(response => response.json())
-                .then(data => {
-                    alert(JSON.stringify(data));
-                    location.reload();
-                })
-                .catch(error => {
-                    console.error('Error:', error);
+
+        // Read escaped server-rendered text; packet metadata never enters executable JavaScript.
+        let rows = Array.from(byId("packet-rows").querySelectorAll("tr"), (element) => {
+            const field = (name) => element.querySelector('[data-field="' + name + '"]').textContent.trim();
+            return {
+                element,
+                id: parsePacketId(field("id")),
+                name: field("name"),
+                region: field("region"),
+                uploader: field("uploader"),
+                searchText: [field("id"), field("name"), field("uploader"), field("channel")].map((value) => value.toLocaleLowerCase("zh-CN")),
+                button: element.querySelector("[data-delete]")
+            };
+        });
+
+        function announce(message, kind) {
+            feedback.dataset.kind = kind || "info";
+            feedback.textContent = message;
+        }
+
+        function rebuildRegions() {
+            regions = Array.from(new Set(rows.map((row) => row.region))).sort((a, b) => a.localeCompare(b, "zh-CN"));
+            regionSelect.replaceChildren();
+            const all = document.createElement("option");
+            all.value = "";
+            all.textContent = "全部区域";
+            regionSelect.append(all);
+            regions.forEach((region, index) => {
+                const option = document.createElement("option");
+                option.value = String(index);
+                option.textContent = region || "未填写区域";
+                regionSelect.append(option);
+            });
+            const selected = regions.indexOf(state.region);
+            if (selected < 0) state.region = null;
+            regionSelect.value = selected < 0 ? "" : String(selected);
+        }
+
+        function updateControls() {
+            document.querySelectorAll("[data-lock]").forEach((control) => { control.disabled = state.busy; });
+            byId("previous-page").disabled = state.busy || state.page <= 1;
+            byId("next-page").disabled = state.busy || state.page * state.size >= state.matches;
+            rows.forEach((row) => {
+                row.button.disabled = state.busy || row.id === null;
+                row.button.title = row.id === null ? "ID 不在有效的正整数范围内，无法删除" : "";
+            });
+            confirmButton.textContent = state.busy ? "正在删除..." : "确认删除";
+            confirmButton.setAttribute("aria-busy", String(state.busy));
+            byId("dialog-status").textContent = state.busy ? "正在删除，请等待服务端确认，勿关闭页面。" : "";
+            byId("packet-table").setAttribute("aria-busy", String(state.busy));
+        }
+
+        function render() {
+            const query = search.value.trim().toLocaleLowerCase("zh-CN");
+            const matches = rows.filter((row) =>
+                (state.region === null || row.region === state.region) &&
+                (!query || row.searchText.some((value) => value.includes(query)))
+            );
+            state.matches = matches.length;
+            const pages = Math.ceil(matches.length / state.size);
+            state.page = Math.max(1, Math.min(state.page, pages || 1));
+            const start = (state.page - 1) * state.size;
+            rows.forEach((row) => { row.element.hidden = true; });
+            matches.slice(start, start + state.size).forEach((row) => { row.element.hidden = false; });
+
+            byId("total-count").textContent = format(rows.length);
+            byId("match-count").textContent = format(matches.length);
+            byId("region-count").textContent = format(new Set(rows.map((row) => row.region).filter(Boolean)).size);
+            byId("uploader-count").textContent = format(new Set(rows.map((row) => row.uploader).filter(Boolean)).size);
+            byId("list-count").textContent = format(matches.length) + " 条";
+            byId("page-summary").textContent = matches.length
+                ? "显示第 " + format(start + 1) + " 至 " + format(Math.min(start + state.size, matches.length)) + " 条，共 " + format(matches.length) + " 条"
+                : "共 0 条记录";
+            byId("page-position").textContent = "第 " + (pages ? state.page : 0) + " / " + pages + " 页";
+            byId("table-scroll").hidden = matches.length === 0;
+            byId("empty-state").hidden = matches.length !== 0;
+            byId("empty-title").textContent = rows.length ? "没有匹配的数据包" : "暂无数据包";
+            byId("empty-description").textContent = rows.length
+                ? "试试其他关键词或区域，也可以清除筛选条件查看全部记录。"
+                : "当前没有可管理的记录，上传数据包后可刷新列表。";
+            byId("empty-reset").hidden = rows.length === 0;
+            updateControls();
+        }
+
+        function resetFilters() {
+            clearTimeout(searchTimer);
+            search.value = "";
+            state.region = null;
+            regionSelect.value = "";
+            state.page = 1;
+            render();
+            search.focus();
+        }
+
+        function validateToken() {
+            if (!tokenInput) return true;
+            const valid = tokenInput.value.trim().length > 0;
+            tokenInput.setAttribute("aria-invalid", String(!valid));
+            if (!valid) {
+                announce("请输入管理令牌后再执行删除。", "error");
+                tokenInput.focus();
+            }
+            return valid;
+        }
+
+        function openConfirmation(from, to, trigger, name) {
+            if (state.busy || dialog.open) return;
+            if (parsePacketId(from) === null || parsePacketId(to) === null || from > to) {
+                announce("删除范围无效，请使用有效的正整数 ID。", "error");
+                return;
+            }
+            if (!validateToken()) return;
+            const count = rows.filter((row) => row.id !== null && row.id >= from && row.id <= to).length;
+            state.pending = { from, to, trigger };
+            byId("dialog-title").textContent = from === to ? "确认删除数据包？" : "确认删除此 ID 范围？";
+            byId("confirmation-detail").textContent = (from === to
+                ? "即将删除 ID " + from + (name ? "（" + name + "）" : "") + "。"
+                : "即将删除 ID " + from + " 至 " + to + "（含两端）的所有数据包。") +
+                " 当前完整列表中匹配 " + format(count) + " 条。";
+            dialogFeedback.textContent = "";
+            dialog.showModal();
+            byId("cancel-delete").focus();
+        }
+
+        byId("range-form").addEventListener("submit", (event) => {
+            event.preventDefault();
+            if (state.busy) return;
+            const from = parsePacketId(fromInput.value);
+            const to = parsePacketId(toInput.value);
+            fromInput.setAttribute("aria-invalid", String(from === null));
+            toInput.setAttribute("aria-invalid", String(to === null));
+            if (from === null || to === null) {
+                announce("请输入 1 至 2147483647 的整数 ID；不接受小数、负数或科学计数法。", "error");
+                (from === null ? fromInput : toInput).focus();
+                return;
+            }
+            if (from > to) {
+                toInput.setAttribute("aria-invalid", "true");
+                announce("结束 ID 不能小于起始 ID，请检查删除范围。", "error");
+                toInput.focus();
+                return;
+            }
+            openConfirmation(from, to, byId("range-button"));
+        });
+
+        rows.forEach((row) => {
+            row.button.addEventListener("click", () => openConfirmation(row.id, row.id, row.button, row.name));
+        });
+        byId("cancel-delete").addEventListener("click", () => { if (!state.busy) dialog.close(); });
+        dialog.addEventListener("cancel", (event) => { if (state.busy) event.preventDefault(); });
+        dialog.addEventListener("close", () => {
+            const trigger = state.pending && state.pending.trigger;
+            state.pending = null;
+            if (trigger && trigger.isConnected && !trigger.disabled) trigger.focus();
+            else search.focus();
+        });
+
+        byId("confirm-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            if (state.busy || !state.pending || !dialog.open) return;
+            if (!validateToken()) {
+                dialog.close();
+                if (tokenInput) tokenInput.focus();
+                return;
+            }
+            const { from, to } = state.pending;
+            const headers = { "Content-Type": "application/json", "Accept": "application/json" };
+            if (tokenInput && tokenInput.value.trim()) headers.Authorization = "Bearer " + tokenInput.value.trim();
+            state.busy = true;
+            updateControls();
+            dialogFeedback.textContent = "";
+            announce("正在提交删除请求，请勿重复操作或关闭页面...", "loading");
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 20000);
+            try {
+                const response = await fetch("/v1/packet/delete", {
+                    method: "DELETE",
+                    headers,
+                    credentials: "same-origin",
+                    cache: "no-store",
+                    redirect: "error",
+                    signal: controller.signal,
+                    body: JSON.stringify({ from, to })
                 });
-        }
-    }
-</script>
+                let result;
+                try {
+                    result = await response.json();
+                } catch {
+                    throw new Error("服务端响应无法解析（HTTP " + response.status + "），列表未作更改。请刷新确认服务端状态。");
+                }
+                const message = result && typeof result.msg === "string" ? result.msg.trim() : "";
+                if (!response.ok) {
+                    throw new Error("删除失败（HTTP " + response.status + "）。" + (message || "请检查权限或稍后重试。") + " 列表未作更改。");
+                }
+                if (!result || result.code !== 0) {
+                    throw new Error((message || "服务端未确认删除成功，请刷新确认状态后再重试。") + " 列表未作更改。");
+                }
 
+                // Commit local changes only after both HTTP and business-level success.
+                const previousCount = rows.length;
+                rows = rows.filter((row) => {
+                    if (row.id !== null && row.id >= from && row.id <= to) {
+                        row.element.remove();
+                        return false;
+                    }
+                    return true;
+                });
+                rebuildRegions();
+                render();
+                dialog.close();
+                announce("删除成功，已从当前列表移除 " + format(previousCount - rows.length) + " 条记录。" + (message ? " " + message : ""), "success");
+            } catch (error) {
+                const message = error.name === "AbortError"
+                    ? "请求超时，列表未作更改。服务端可能仍在处理，请刷新确认状态后再重试。"
+                    : error instanceof TypeError
+                        ? "网络请求未完成，列表未作更改。请检查网络并刷新确认服务端状态后再重试。"
+                        : error.message || "删除失败，列表未作更改。";
+                announce(message, "error");
+                dialogFeedback.textContent = message;
+            } finally {
+                clearTimeout(timeout);
+                state.busy = false;
+                updateControls();
+            }
+        });
+
+        search.addEventListener("input", () => {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => { state.page = 1; render(); }, 160);
+        });
+        regionSelect.addEventListener("change", () => {
+            state.region = regionSelect.value === "" ? null : regions[Number(regionSelect.value)];
+            state.page = 1;
+            render();
+        });
+        pageSize.addEventListener("change", () => {
+            const size = Number(pageSize.value);
+            state.size = [20, 50, 100].includes(size) ? size : 20;
+            state.page = 1;
+            render();
+        });
+        byId("previous-page").addEventListener("click", () => { if (!state.busy && state.page > 1) { state.page--; render(); } });
+        byId("next-page").addEventListener("click", () => { if (!state.busy && state.page * state.size < state.matches) { state.page++; render(); } });
+        byId("reset-filters").addEventListener("click", resetFilters);
+        byId("empty-reset").addEventListener("click", resetFilters);
+        refreshButton.addEventListener("click", () => {
+            if (state.busy) return;
+            refreshButton.disabled = true;
+            refreshButton.textContent = "正在刷新...";
+            if (tokenInput) tokenInput.value = "";
+            announce("正在重新加载列表...", "loading");
+            window.location.reload();
+        });
+        if (tokenInput) {
+            tokenInput.value = "";
+            tokenInput.addEventListener("input", () => tokenInput.removeAttribute("aria-invalid"));
+            window.addEventListener("pagehide", () => { tokenInput.value = ""; });
+            window.addEventListener("pageshow", () => { tokenInput.value = ""; });
+        }
+        rebuildRegions();
+        render();
+    })();
+</script>
 </body>
 </html>
 {{ end }}

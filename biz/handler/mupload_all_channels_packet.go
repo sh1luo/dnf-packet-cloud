@@ -4,8 +4,6 @@ package handler
 
 import (
 	"context"
-	"log"
-	"packet_cloud/service/readwriter"
 
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 
@@ -17,37 +15,21 @@ import (
 // MUploadAllChannelsPacket .
 // @router /v1/packet/mupload [POST]
 func MUploadAllChannelsPacket(ctx context.Context, c *app.RequestContext) {
-	var err error
 	var req packet.MUploadAllChannelsPacketReq
-	err = c.BindAndValidate(&req)
-	if err != nil || req.McloudPacket == nil {
-		c.String(consts.StatusBadRequest, err.Error())
+	if err := c.BindAndValidate(&req); err != nil {
+		JSONError(c, consts.StatusBadRequest, "请求格式不正确")
+		return
+	}
+	if req.McloudPacket == nil || len(req.McloudPacket.Channel) < 1 || len(req.McloudPacket.Channel) > 9 {
+		JSONError(c, consts.StatusBadRequest, "mcloud_packet.channel 必须包含 1～9 个频道")
 		return
 	}
 
-	packets, err := readwriter.ReadPacket(readwriter.LFS)
-	if err != nil {
-		log.Println("[MUploadAllChannelsPacket] read packets error", err)
-		c.JSON(consts.StatusInternalServerError, nil)
-		return
-	}
-
-	m := map[int]string{
-		0: "跨1",
-		1: "跨2",
-		2: "跨3A",
-		3: "跨3B",
-		4: "跨4",
-		5: "跨5",
-		6: "跨6",
-		7: "跨7",
-		8: "跨8",
-	}
-
+	regions := [...]string{"跨1", "跨2", "跨3A", "跨3B", "跨4", "跨5", "跨6", "跨7", "跨8"}
+	packets := make([]*packet.CloudPacket, 0, len(req.McloudPacket.Channel))
 	for idx, channel := range req.McloudPacket.Channel {
 		inserted := &packet.CloudPacket{
-			Id:          0,
-			Region:      m[idx],
+			Region:      regions[idx],
 			Name:        req.McloudPacket.Name,
 			Channel:     channel,
 			Uploader:    req.McloudPacket.Uploader,
@@ -55,20 +37,17 @@ func MUploadAllChannelsPacket(ctx context.Context, c *app.RequestContext) {
 			UserPackets: req.McloudPacket.UserPackets,
 		}
 
-		if len(packets) > 0 {
-			inserted.Id = packets[len(packets)-1].Id + 1
-		} else {
-			inserted.Id = 1
+		if err := validateUpload(inserted); err != nil {
+			JSONError(c, consts.StatusBadRequest, err.Error())
+			return
 		}
 		packets = append(packets, inserted)
 	}
 
-	err = readwriter.SavePacket(packets, readwriter.LFS)
-
-	if err != nil {
-		c.JSON(consts.StatusInternalServerError, nil)
+	if _, err := Repository(c).Append(ctx, packets); err != nil {
+		storageError(c, err)
 		return
 	}
 
-	c.JSON(consts.StatusOK, nil)
+	c.JSON(consts.StatusOK, map[string]any{"code": 0, "msg": "批量上传成功"})
 }
