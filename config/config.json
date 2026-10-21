@@ -1,6 +1,8 @@
 {
     "StorageMedia": "lfs",
     "PacketsFilePath": "./packets",
+    "HostPorts": "127.0.0.1:8080",
+    "WriteToken": "",
     "MySQL": {
         "DSN": "",
         "ReadDSN": "",

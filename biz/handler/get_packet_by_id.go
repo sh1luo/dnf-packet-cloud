@@ -4,9 +4,8 @@ package handler
 
 import (
 	"context"
-	"log"
-	"packet_cloud/service/readwriter"
-	"packet_cloud/util"
+	"packet_cloud/internal/cryptoutil"
+	"strconv"
 
 	"github.com/bytedance/sonic"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
@@ -19,50 +18,37 @@ import (
 // GetPacketByID .
 // @router /v1/packet/get/:id [GET]
 func GetPacketByID(ctx context.Context, c *app.RequestContext) {
-	var err error
-	var req packet.GetPacketByIDReq
-	err = c.BindAndValidate(&req)
-	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+	// The generated model lacks a path tag. Read the route explicitly without
+	// editing generated protobuf files; reject ambiguous legacy query IDs.
+	id, err := strconv.ParseInt(c.Param("id"), 10, 32)
+	if err != nil || id < 1 {
+		JSONError(c, consts.StatusBadRequest, "id 必须为有效的正整数")
 		return
 	}
-
-	packets, err := readwriter.ReadPacket(readwriter.LFS)
-	if err != nil {
-		log.Printf("[GetPacketByID] username=%s, time=%s, error=%s\n", req.Username, req.Time, err)
-		c.JSON(consts.StatusInternalServerError, err)
-		return
-	}
-
-	for _, p := range packets {
-		if p.Id != req.GetId() {
-			continue
-		}
-
-		bs, err := sonic.Marshal(p)
-		if err != nil {
-			log.Printf("[GetPacketByID] marshal error, username=%s, time=%s, id=%d, error=%s\n", req.Username, req.Time, req.GetId(), err)
-			c.JSON(consts.StatusInternalServerError, err)
+	for _, queryID := range c.QueryArgs().PeekAll("id") {
+		legacyID, parseErr := strconv.ParseInt(string(queryID), 10, 32)
+		if parseErr != nil || legacyID != id {
+			JSONError(c, consts.StatusBadRequest, "查询参数 id 必须与路径 id 一致")
 			return
 		}
-
-		encrypted, err := util.AESCBCEncrypt(bs)
-		if err != nil {
-			log.Printf("[GetPacketByID] aes error, username=%s, time=%s, id=%d, error=%s\n", req.Username, req.Time, req.GetId(), err)
-			c.JSON(consts.StatusInternalServerError, err)
-			return
-		}
-
-		c.JSON(consts.StatusOK, packet.GetPacketByIDResp{
-			Code:        0,
-			Msg:         "获取云数据包成功",
-			UserPackets: encrypted,
-		})
-		return
-
 	}
 
-	log.Printf("[GetPacketByID] packet not found, username=%s, time=%s, id=%d\n", req.Username, req.Time, req.GetId())
-
-	c.JSON(consts.StatusOK, nil)
+	p, err := Repository(c).Get(ctx, int32(id))
+	if err != nil {
+		storageError(c, err)
+		return
+	}
+	bs, err := sonic.Marshal(p)
+	if err != nil {
+		storageError(c, err)
+		return
+	}
+	encrypted, err := cryptoutil.AESCBCEncrypt(bs)
+	if err != nil {
+		storageError(c, err)
+		return
+	}
+	c.JSON(consts.StatusOK, packet.GetPacketByIDResp{
+		Code: 0, Msg: "获取云数据包成功", UserPackets: encrypted,
+	})
 }

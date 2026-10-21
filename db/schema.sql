@@ -2,7 +2,7 @@ CREATE DATABASE IF NOT EXISTS `packet_cloud` CHARACTER SET utf8mb4 COLLATE utf8m
 USE `packet_cloud`;
 
 CREATE TABLE IF NOT EXISTS `cloud_packets` (
-  `id` INT NOT NULL,
+  `id` INT NOT NULL AUTO_INCREMENT,
   `region` VARCHAR(32) NOT NULL,
   `name` VARCHAR(64) NOT NULL,
   `channel` VARCHAR(32) NOT NULL,
@@ -19,11 +19,12 @@ CREATE TABLE IF NOT EXISTS `cloud_packets` (
 CREATE TABLE IF NOT EXISTS `user_packets` (
   `id` INT NOT NULL,
   `cloud_packet_id` INT NOT NULL,
+  `ordinal` INT NOT NULL,
   `name` VARCHAR(64) NOT NULL,
   `content` LONGTEXT NOT NULL,
   `size` INT NOT NULL,
   `send_timing` VARCHAR(32) NOT NULL,
-  PRIMARY KEY (`id`),
+  PRIMARY KEY (`cloud_packet_id`,`ordinal`),
   INDEX `idx_cloud_packet_id` (`cloud_packet_id`),
   CONSTRAINT `fk_user_packets_cloud_packet_id` FOREIGN KEY (`cloud_packet_id`) REFERENCES `cloud_packets`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

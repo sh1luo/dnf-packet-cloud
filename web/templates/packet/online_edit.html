@@ -1,0 +1,625 @@
+{{ define "packet/online_edit.html" }}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <title>云端数据包管理 | Packet Cloud</title>
+    <style>
+        :root {
+            --text: #242b3a;
+            --muted: #6b7282;
+            --blue: #3762e4;
+            --line: #e6e9f0;
+            --surface: #ffffff;
+            --danger: #c73944;
+        }
+        * { box-sizing: border-box; }
+        [hidden] { display: none !important; }
+        body {
+            margin: 0;
+            background: #f5f6fa;
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+        button, input, select { font: inherit; }
+        button, input, select { -webkit-tap-highlight-color: transparent; }
+        button { cursor: pointer; }
+        button { min-height: 44px; }
+        button:disabled, input:disabled, select:disabled { cursor: not-allowed; opacity: .55; }
+        :focus-visible { outline: 3px solid #8ba8ff; outline-offset: 3px; }
+        a { color: var(--blue); }
+        h1, h2, h3, p { margin: 0; }
+        .icon { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+        .skip-link { position: fixed; top: -100px; left: 16px; z-index: 10; padding: 12px 20px; background: white; }
+        .skip-link:focus { top: 12px; }
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+        .topbar { background: white; border-bottom: 1px solid var(--line); }
+        .topbar-inner, .workspace { width: min(1440px, 100%); margin: 0 auto; }
+        .topbar-inner { min-height: 66px; padding: 12px 36px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+        .brand { display: flex; align-items: center; gap: 11px; }
+        .brand-mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; background: var(--blue); color: white; }
+        .brand-mark .icon { width: 22px; height: 22px; }
+        .brand-name { display: block; font-size: 15px; font-weight: 700; letter-spacing: -.02em; }
+        .brand-caption { color: var(--muted); font-size: 11px; }
+        .environment { display: flex; align-items: center; gap: 7px; color: #5c6576; font-size: 12px; padding: 6px 11px; background: #f5f6fa; border: 1px solid var(--line); border-radius: 6px; }
+        .workspace { padding: 26px 36px 28px; }
+        .page-heading { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-bottom: 22px; }
+        .eyebrow { color: var(--muted); font-size: 12px; margin-bottom: 9px; }
+        .eyebrow span { color: #b3b8c4; padding: 0 8px; }
+        h1 { font-size: clamp(24px, 3vw, 28px); line-height: 1.3; letter-spacing: -.035em; }
+        .subtitle { color: var(--muted); font-size: 13px; margin-top: 8px; }
+        .button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid #dce1eb; border-radius: 7px; padding: 9px 15px; background: white; color: var(--text); font-size: 13px; font-weight: 550; white-space: nowrap; transition: background .15s, border-color .15s; }
+        .button:hover:not(:disabled) { background: #f5f7fc; border-color: #b8c5e4; }
+        .button-primary { background: var(--blue); color: white; border-color: var(--blue); }
+        .button-primary:hover:not(:disabled) { background: #294ec3; border-color: #294ec3; }
+        .button-destructive { background: var(--danger); border-color: var(--danger); color: white; }
+        .button-destructive:hover:not(:disabled) { background: #ac2934; border-color: #ac2934; }
+        .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 16px; }
+        .stat { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 15px 20px; overflow: hidden; }
+        .stat-label { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--muted); }
+        .stat-label .icon { width: 15px; height: 15px; color: #929aaf; }
+        .stat:first-child .stat-label .icon { color: var(--blue); }
+        .stat-value { display: block; margin-top: 7px; font-size: 27px; line-height: 1.2; font-weight: 650; font-variant-numeric: tabular-nums; letter-spacing: -.035em; }
+        .stat:first-child .stat-value { color: var(--blue); }
+        .panel { border: 1px solid var(--line); background: var(--surface); border-radius: 12px; box-shadow: 0 2px 5px #25334d03; }
+        .toolbar { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(150px, 210px) auto; gap: 14px; padding: 0 24px 20px; align-items: end; }
+        label { display: block; font-size: 12px; font-weight: 550; margin-bottom: 7px; }
+        input, select { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #d8deea; border-radius: 7px; padding: 10px 12px; color: var(--text); background: white; font-size: 13px; }
+        input:hover, select:hover { border-color: #b6c1d8; }
+        input::placeholder { color: #939aab; }
+        input[aria-invalid="true"] { border-color: var(--danger); }
+        input[type="search"] { padding-left: 37px; }
+        .search-wrap { position: relative; }
+        .search-symbol { position: absolute; left: 13px; top: 13px; color: #8b94a7; pointer-events: none; }
+        .selection-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 24px; border-top: 1px solid var(--line); background: #f8f9fd; }
+        .selection-summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; font-size: 13px; }
+        .selection-summary strong { color: var(--blue); font-variant-numeric: tabular-nums; }
+        .selection-note { font-size: 12px; color: var(--muted); }
+        .selection-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+        .selection-actions .button { padding: 9px 12px; }
+        .help { font-size: 12px; color: var(--muted); margin-top: 10px; }
+        .feedback { min-height: 20px; margin: 0 2px 14px; font-size: 12px; overflow-wrap: anywhere; }
+        .feedback[data-kind="success"] { color: #086d52; }
+        .feedback[data-kind="error"] { color: var(--danger); }
+        .feedback[data-kind="loading"]::before { content: ""; display: inline-block; width: 11px; height: 11px; margin-right: 8px; border: 2px solid #d9e3ff; border-top-color: var(--blue); border-radius: 50%; vertical-align: -2px; animation: spin .8s linear infinite; }
+        .list-heading { padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+        h2 { font-size: 15px; font-weight: 650; }
+        .list-title { display: flex; align-items: center; gap: 10px; }
+        .count-badge { border-radius: 5px; padding: 2px 8px; background: #eef2ff; color: #4764bd; font-size: 12px; font-variant-numeric: tabular-nums; }
+        .list-note { color: var(--muted); font-size: 12px; }
+        .table-scroll { position: relative; overflow-x: auto; overscroll-behavior-x: contain; border-top: 1px solid var(--line); }
+        table { width: 100%; min-width: 1020px; border-collapse: collapse; table-layout: fixed; text-align: left; }
+        th { padding: 13px 18px; background: #f8f9fc; font-size: 12px; color: #737e93; font-weight: 550; }
+        td { padding: 12px 18px; border-top: 1px solid #edf0f5; font-size: 13px; vertical-align: middle; overflow-wrap: anywhere; }
+        .select-cell { position: sticky; left: 0; padding: 0 4px; text-align: center; background: white; z-index: 1; }
+        th.select-cell { background: #f8f9fc; z-index: 2; }
+        .select-cell::after { content: ""; position: absolute; top: 0; bottom: 0; right: -7px; width: 7px; background: linear-gradient(to right, #25334d08, transparent); pointer-events: none; }
+        .check-target { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 44px; min-height: 44px; margin: 0; vertical-align: middle; cursor: pointer; }
+        input[type="checkbox"] { width: 17px; height: 17px; min-height: 0; margin: 0; padding: 0; border-radius: 4px; accent-color: var(--blue); cursor: pointer; }
+        input[type="checkbox"]:disabled { cursor: not-allowed; }
+        tbody tr:hover, tbody tr:hover .select-cell { background: #f7f9ff; }
+        tbody tr[data-selected="true"], tbody tr[data-selected="true"] .select-cell { background: #eef3ff; }
+        .id-cell { color: #818a9c; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; font-variant-numeric: tabular-nums; }
+        .name-cell { font-weight: 550; }
+        .region-badge { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; background: #eef2ff; color: #4866ba; border-radius: 5px; padding: 3px 9px; font-size: 11px; white-space: nowrap; }
+        .region-badge:empty { display: none; }
+        .time-cell { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+        .empty-state { padding: 62px 24px; text-align: center; border-top: 1px solid var(--line); }
+        .empty-mark { display: grid; place-items: center; width: 52px; height: 52px; margin: 0 auto 16px; border: 1px solid #dce4fb; border-radius: 12px; background: #f4f6ff; font-size: 22px; color: var(--blue); }
+        .empty-state h3 { font-size: 16px; }
+        .empty-state p { color: var(--muted); margin: 8px 0 18px; }
+        .pagination { padding: 17px 24px; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+        .pagination-info { color: var(--muted); font-size: 12px; }
+        .pagination-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+        .page-size { display: flex; gap: 8px; align-items: center; margin-right: 12px; }
+        .page-size label { margin: 0; white-space: nowrap; color: var(--muted); font-weight: 400; }
+        .page-size select { width: 72px; }
+        .page-position { min-width: 85px; text-align: center; font-size: 12px; font-variant-numeric: tabular-nums; }
+        .footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 22px 2px 0; font-size: 11px; color: var(--muted); }
+        dialog { width: min(480px, calc(100% - 32px)); max-height: calc(100dvh - 32px); padding: 28px; border: 1px solid var(--line); border-radius: 14px; color: var(--text); box-shadow: 0 24px 90px #1f2d4640; overflow-y: auto; }
+        dialog::backdrop { background: #202a4666; backdrop-filter: blur(3px); }
+        .dialog-tag { display: flex; align-items: center; gap: 7px; color: var(--danger); font-weight: 550; font-size: 12px; margin-bottom: 12px; }
+        dialog h2 { font-size: 22px; margin-bottom: 14px; }
+        .confirmation-detail { overflow-wrap: anywhere; }
+        .confirmation-ids { max-height: 140px; overflow-y: auto; padding: 12px; margin-top: 12px; border: 1px solid var(--line); border-radius: 7px; background: #f8f9fc; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; overflow-wrap: anywhere; }
+        .warning { padding: 12px 14px; margin: 16px 0; border: 1px solid #eed8b1; border-radius: 8px; background: #fff9ef; color: #79511b; font-size: 12px; }
+        .dialog-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 22px; }
+        .dialog-feedback { color: var(--danger); font-size: 13px; overflow-wrap: anywhere; }
+        noscript p { padding: 16px; margin-bottom: 18px; border: 1px solid #eed8b1; border-radius: 9px; background: #fff9ef; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) {
+            .feedback[data-kind="loading"]::before { animation: none; }
+            .button { transition: none; }
+        }
+        @media (max-width: 900px) {
+            .topbar-inner { padding: 12px 24px; }
+            .workspace { padding: 24px; }
+            .selection-note { display: block; }
+        }
+        @media (max-width: 540px) {
+            .topbar-inner { min-height: 60px; padding: 10px 16px; }
+            .brand-caption { display: none; }
+            .environment { font-size: 11px; padding: 5px 9px; }
+            .workspace { padding: 20px 16px; }
+            .page-heading { align-items: center; gap: 12px; margin-bottom: 18px; }
+            .page-heading > .button { padding: 9px 11px; }
+            .page-heading .button .icon { display: none; }
+            .eyebrow { display: none; }
+            .subtitle { max-width: 220px; font-size: 12px; margin-top: 6px; }
+            .stats { gap: 7px; margin-bottom: 12px; }
+            .stat { padding: 12px 9px; }
+            .stat-label { font-size: 11px; }
+            .stat-label .icon { display: none; }
+            .stat-value { font-size: 23px; margin-top: 5px; }
+            .feedback { font-size: 11px; margin-bottom: 12px; }
+            .toolbar { grid-template-columns: minmax(0, 1fr) auto; gap: 12px 9px; padding: 0 16px 16px; }
+            .toolbar > :first-child { grid-column: 1 / -1; }
+            .toolbar > .button { padding: 9px 12px; }
+            .list-heading, .pagination { padding: 16px; }
+            .list-heading { align-items: start; flex-direction: column; gap: 6px; }
+            .list-heading > .list-note { font-size: 11px; }
+            .selection-bar { padding: 12px 16px; gap: 10px; }
+            .selection-summary { gap: 4px; }
+            .selection-note { width: 100%; font-size: 11px; }
+            .selection-actions { width: 100%; gap: 7px; }
+            .selection-actions .button { padding: 9px; font-size: 12px; }
+            #delete-selected { margin-left: auto; }
+            .pagination-actions { width: 100%; gap: 8px; }
+            .page-size { width: 100%; margin: 0 0 4px; }
+            .pagination-actions > .button { flex: 1; }
+            .dialog-actions > .button { flex: 1; }
+            dialog { padding: 22px; }
+        }
+    </style>
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" style="position:absolute">
+    <symbol id="icon-box" viewBox="0 0 24 24"><path d="m12 3 9 5v8l-9 5-9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8M7.5 5.5l9 5"/></symbol>
+    <symbol id="icon-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.3 7a7 7 0 0 1 11.5-1L20 9M4 15l2.2 3A7 7 0 0 0 17.7 17"/></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></symbol>
+    <symbol id="icon-region" viewBox="0 0 24 24"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+    <symbol id="icon-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></symbol>
+    <symbol id="icon-trash" viewBox="0 0 24 24"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></symbol>
+</svg>
+<a class="skip-link" href="#main">跳转到主要内容</a>
+<header class="topbar">
+    <div class="topbar-inner">
+        <div class="brand">
+            <span class="brand-mark" aria-hidden="true"><svg class="icon"><use href="#icon-box"/></svg></span>
+            <div><span class="brand-name">Packet Cloud</span><span class="brand-caption">云端数据包管理</span></div>
+        </div>
+        <span class="environment"><svg class="icon" aria-hidden="true"><use href="#icon-box"/></svg>管理工作台</span>
+    </div>
+</header>
+<main id="main" class="workspace" tabindex="-1">
+    <div class="page-heading">
+        <div>
+            <p class="eyebrow">工作台<span>/</span>数据包</p>
+            <h1>数据包管理</h1>
+            <p class="subtitle">检索上传记录，清理云端数据包。</p>
+        </div>
+        <button class="button" id="refresh-button" type="button" data-lock disabled><svg class="icon" aria-hidden="true"><use href="#icon-refresh"/></svg>刷新列表</button>
+    </div>
+    <noscript><p>JavaScript 未启用。以下展示全部数据包摘要；搜索、分页与删除功能需要启用 JavaScript。</p></noscript>
+    <section class="stats" aria-label="数据概览">
+        <div class="stat"><p class="stat-label"><svg class="icon" aria-hidden="true"><use href="#icon-box"/></svg>数据包总数</p><strong class="stat-value" id="total-count">{{ len .packets }}</strong></div>
+        <div class="stat"><p class="stat-label"><svg class="icon" aria-hidden="true"><use href="#icon-search"/></svg>筛选结果</p><strong class="stat-value" id="match-count">{{ len .packets }}</strong></div>
+        <div class="stat"><p class="stat-label"><svg class="icon" aria-hidden="true"><use href="#icon-region"/></svg>覆盖区域</p><strong class="stat-value" id="region-count">-</strong></div>
+        <div class="stat"><p class="stat-label"><svg class="icon" aria-hidden="true"><use href="#icon-user"/></svg>上传者</p><strong class="stat-value" id="uploader-count">-</strong></div>
+    </section>
+    <p id="feedback" class="feedback" role="status" aria-live="polite" aria-atomic="true">列表已加载，可刷新获取最新记录。</p>
+    <section class="panel" aria-labelledby="list-heading">
+        <div class="list-heading">
+            <div class="list-title"><h2 id="list-heading">数据包列表</h2><span class="count-badge" id="list-count">{{ len .packets }} 条</span></div>
+            <p class="list-note" id="table-help">勾选后批量删除 · 表头可全选当前页</p>
+        </div>
+        <div class="toolbar" role="search" aria-label="筛选数据包">
+            <div>
+                <label for="search">搜索数据包</label>
+                <div class="search-wrap">
+                    <svg class="icon search-symbol" aria-hidden="true"><use href="#icon-search"/></svg>
+                    <input id="search" type="search" placeholder="搜索 ID、名称、上传者或频道" autocomplete="off" aria-controls="packet-table" data-lock disabled>
+                </div>
+            </div>
+            <div>
+                <label for="region">所属区域</label>
+                <select id="region" aria-controls="packet-table" data-lock disabled><option value="">全部区域</option></select>
+            </div>
+            <button class="button" id="reset-filters" type="button" data-lock disabled>重置筛选</button>
+        </div>
+        <div class="selection-bar" role="group" aria-label="批量管理数据包">
+            <div class="selection-summary">
+                <span>已选 <strong id="selected-count">0</strong> 条</span>
+                <span class="selection-note" id="selection-note" role="status" aria-live="polite">勾选记录后可批量删除，支持跨页选择。</span>
+            </div>
+            <div class="selection-actions">
+                <button class="button" id="select-filtered" type="button" data-lock disabled>全选筛选结果</button>
+                <button class="button" id="clear-selection" type="button" data-lock disabled>取消选择</button>
+                <button class="button button-destructive" id="delete-selected" type="button" data-lock disabled><svg class="icon" aria-hidden="true"><use href="#icon-trash"/></svg>删除所选</button>
+            </div>
+        </div>
+        <div class="table-scroll" id="table-scroll" role="region" aria-label="数据包表格，可横向滚动" aria-describedby="table-help" tabindex="0">
+            <table id="packet-table">
+                <caption class="sr-only">云端数据包摘要及多选操作</caption>
+                <colgroup><col style="width: 6%"><col style="width: 7%"><col style="width: 27%"><col style="width: 10%"><col style="width: 10%"><col style="width: 17%"><col style="width: 23%"></colgroup>
+                <thead><tr><th class="select-cell" scope="col"><label class="check-target" title="全选当前页"><input id="select-page" type="checkbox" aria-label="全选当前页数据包" data-lock disabled><span class="sr-only">全选当前页</span></label></th><th scope="col">ID</th><th scope="col">数据包名称</th><th scope="col">区域</th><th scope="col">频道</th><th scope="col">上传者</th><th scope="col">上传时间</th></tr></thead>
+                <tbody id="packet-rows">
+                {{ range .packets }}
+                {{ if . }}
+                <tr>
+                    <td class="select-cell"><label class="check-target"><input type="checkbox" data-select data-lock disabled aria-label="选择数据包 {{ .Id }}"><span class="sr-only">选择数据包 {{ .Id }}</span></label></td>
+                    <td class="id-cell" data-field="id">{{ .Id }}</td>
+                    <td class="name-cell"><span data-field="name">{{ .Name }}</span>{{ if not .Name }}<span class="list-note">未命名</span>{{ end }}</td>
+                    <td><span class="region-badge" data-field="region" title="{{ .Region }}">{{ .Region }}</span>{{ if not .Region }}<span class="list-note">未填写</span>{{ end }}</td>
+                    <td><span data-field="channel">{{ .Channel }}</span>{{ if not .Channel }}<span class="list-note">未填写</span>{{ end }}</td>
+                    <td><span data-field="uploader">{{ .Uploader }}</span>{{ if not .Uploader }}<span class="list-note">未填写</span>{{ end }}</td>
+                    <td class="time-cell"><span data-field="time">{{ .Time }}</span>{{ if not .Time }}<span class="list-note">未填写</span>{{ end }}</td>
+                </tr>
+                {{ end }}
+                {{ end }}
+                </tbody>
+            </table>
+        </div>
+        <div class="empty-state" id="empty-state" {{ if .packets }}hidden{{ end }}>
+            <div class="empty-mark" aria-hidden="true">0</div>
+            <h3 id="empty-title">暂无数据包</h3>
+            <p id="empty-description">当前没有可管理的记录，上传数据包后可刷新列表。</p>
+            <button class="button button-primary" id="empty-reset" type="button" data-lock hidden disabled>清除筛选条件</button>
+        </div>
+        <nav class="pagination" aria-label="数据包分页">
+            <p class="pagination-info" id="page-summary" role="status" aria-live="polite" aria-atomic="true">正在准备分页</p>
+            <div class="pagination-actions">
+                <div class="page-size">
+                    <label for="page-size">每页条数</label>
+                    <select id="page-size" data-lock disabled><option value="20">20</option><option value="50">50</option><option value="100">100</option></select>
+                </div>
+                <button class="button" id="previous-page" type="button" aria-controls="packet-table" data-lock disabled>上一页</button>
+                <span class="page-position" id="page-position">第 0 / 0 页</span>
+                <button class="button" id="next-page" type="button" aria-controls="packet-table" data-lock disabled>下一页</button>
+            </div>
+        </nav>
+    </section>
+    <footer class="footer"><span>Packet Cloud / 管理工作台</span><span>删除不可撤销，请确认所选记录。</span></footer>
+</main>
+<dialog id="delete-dialog" aria-labelledby="dialog-title" aria-describedby="confirmation-detail confirmation-warning">
+    <form id="confirm-form">
+        <p class="dialog-tag"><svg class="icon" aria-hidden="true"><use href="#icon-trash"/></svg>删除确认</p>
+        <h2 id="dialog-title">确认删除数据包？</h2>
+        <p class="confirmation-detail" id="confirmation-detail"></p>
+        <p class="confirmation-ids" id="confirmation-ids" tabindex="0" aria-label="待删除的数据包 ID"></p>
+        <p class="warning" id="confirmation-warning">此操作不可撤销。仅删除所选 ID 对应的记录，包含其他页或被筛选隐藏的已选记录。</p>
+        <p class="help" id="dialog-status" role="status" aria-live="polite" aria-atomic="true"></p>
+        <p class="dialog-feedback" id="dialog-feedback" role="alert" aria-atomic="true"></p>
+        <div class="dialog-actions">
+            <button class="button" id="cancel-delete" type="button" data-lock autofocus>取消</button>
+            <button class="button button-destructive" id="confirm-delete" type="submit" data-lock>确认删除</button>
+        </div>
+    </form>
+</dialog>
+<script>
+    (() => {
+        "use strict";
+
+        const byId = (id) => document.getElementById(id);
+        const search = byId("search");
+        const regionSelect = byId("region");
+        const pageSize = byId("page-size");
+        const selectPage = byId("select-page");
+        const deleteSelected = byId("delete-selected");
+        const selected = new Set();
+        const dialog = byId("delete-dialog");
+        const confirmButton = byId("confirm-delete");
+        const refreshButton = byId("refresh-button");
+        const feedback = byId("feedback");
+        const dialogFeedback = byId("dialog-feedback");
+        const format = (number) => number.toLocaleString("zh-CN");
+        const state = { page: 1, size: 20, region: null, busy: false, pending: null, matches: 0, filtered: [], visible: [], progress: "" };
+        let regions = [];
+        let searchTimer = null;
+
+        function parsePacketId(value) {
+            const text = String(value).trim();
+            if (!/^[0-9]+$/.test(text)) return null;
+            const number = Number(text);
+            return Number.isSafeInteger(number) && number >= 1 && number <= 2147483647 ? number : null;
+        }
+
+        // Read escaped server-rendered text; packet metadata never enters executable JavaScript.
+        let rows = Array.from(byId("packet-rows").querySelectorAll("tr"), (element) => {
+            const field = (name) => element.querySelector('[data-field="' + name + '"]').textContent.trim();
+            return {
+                element,
+                id: parsePacketId(field("id")),
+                name: field("name"),
+                region: field("region"),
+                uploader: field("uploader"),
+                searchText: [field("id"), field("name"), field("uploader"), field("channel")].map((value) => value.toLocaleLowerCase("zh-CN")),
+                checkbox: element.querySelector("[data-select]")
+            };
+        });
+
+        function announce(message, kind) {
+            feedback.dataset.kind = kind || "info";
+            feedback.textContent = message;
+        }
+
+        function rebuildRegions() {
+            regions = Array.from(new Set(rows.map((row) => row.region))).sort((a, b) => a.localeCompare(b, "zh-CN"));
+            regionSelect.replaceChildren();
+            const all = document.createElement("option");
+            all.value = "";
+            all.textContent = "全部区域";
+            regionSelect.append(all);
+            regions.forEach((region, index) => {
+                const option = document.createElement("option");
+                option.value = String(index);
+                option.textContent = region || "未填写区域";
+                regionSelect.append(option);
+            });
+            const selected = regions.indexOf(state.region);
+            if (selected < 0) state.region = null;
+            regionSelect.value = selected < 0 ? "" : String(selected);
+        }
+
+        function updateControls() {
+            document.querySelectorAll("[data-lock]").forEach((control) => { control.disabled = state.busy; });
+            byId("previous-page").disabled = state.busy || state.page <= 1;
+            byId("next-page").disabled = state.busy || state.page * state.size >= state.matches;
+            rows.forEach((row) => {
+                row.checkbox.disabled = state.busy || row.id === null;
+                row.checkbox.title = row.id === null ? "ID 不在有效的正整数范围内，无法选择" : "";
+                row.checkbox.checked = selected.has(row.id);
+                row.element.dataset.selected = String(row.checkbox.checked);
+            });
+            const selectable = state.visible.filter((row) => row.id !== null);
+            const selectedVisible = selectable.filter((row) => selected.has(row.id)).length;
+            selectPage.disabled = state.busy || selectable.length === 0;
+            selectPage.checked = selectable.length > 0 && selectedVisible === selectable.length;
+            selectPage.indeterminate = selectedVisible > 0 && selectedVisible < selectable.length;
+            byId("select-filtered").disabled = state.busy || !state.filtered.some((row) => row.id !== null && !selected.has(row.id));
+            byId("clear-selection").disabled = state.busy || selected.size === 0;
+            deleteSelected.disabled = state.busy || selected.size === 0;
+            byId("selected-count").textContent = format(selected.size);
+            const hiddenSelected = selected.size - selectedVisible;
+            byId("selection-note").textContent = selected.size === 0
+                ? "勾选记录后可批量删除，支持跨页选择。"
+                : hiddenSelected > 0
+                    ? "其中 " + format(hiddenSelected) + " 条未显示在当前页。"
+                    : "仅删除已勾选的记录。";
+            confirmButton.textContent = state.busy ? "正在删除..." : "确认删除";
+            confirmButton.setAttribute("aria-busy", String(state.busy));
+            byId("dialog-status").textContent = state.busy ? state.progress : "";
+            byId("packet-table").setAttribute("aria-busy", String(state.busy));
+        }
+
+        function render() {
+            const query = search.value.trim().toLocaleLowerCase("zh-CN");
+            const matches = rows.filter((row) =>
+                (state.region === null || row.region === state.region) &&
+                (!query || row.searchText.some((value) => value.includes(query)))
+            );
+            state.filtered = matches;
+            state.matches = matches.length;
+            const pages = Math.ceil(matches.length / state.size);
+            state.page = Math.max(1, Math.min(state.page, pages || 1));
+            const start = (state.page - 1) * state.size;
+            state.visible = matches.slice(start, start + state.size);
+            rows.forEach((row) => { row.element.hidden = true; });
+            state.visible.forEach((row) => { row.element.hidden = false; });
+
+            byId("total-count").textContent = format(rows.length);
+            byId("match-count").textContent = format(matches.length);
+            byId("region-count").textContent = format(new Set(rows.map((row) => row.region).filter(Boolean)).size);
+            byId("uploader-count").textContent = format(new Set(rows.map((row) => row.uploader).filter(Boolean)).size);
+            byId("list-count").textContent = format(matches.length) + " 条";
+            byId("page-summary").textContent = matches.length
+                ? "显示第 " + format(start + 1) + " 至 " + format(Math.min(start + state.size, matches.length)) + " 条，共 " + format(matches.length) + " 条"
+                : "共 0 条记录";
+            byId("page-position").textContent = "第 " + (pages ? state.page : 0) + " / " + pages + " 页";
+            byId("table-scroll").hidden = matches.length === 0;
+            byId("empty-state").hidden = matches.length !== 0;
+            byId("empty-title").textContent = rows.length ? "没有匹配的数据包" : "暂无数据包";
+            byId("empty-description").textContent = rows.length
+                ? "试试其他关键词或区域，也可以清除筛选条件查看全部记录。"
+                : "当前没有可管理的记录，上传数据包后可刷新列表。";
+            byId("empty-reset").hidden = rows.length === 0;
+            updateControls();
+        }
+
+        function flushSearch() {
+            if (searchTimer === null) return;
+            clearTimeout(searchTimer);
+            searchTimer = null;
+            state.page = 1;
+            render();
+        }
+
+        function resetFilters() {
+            clearTimeout(searchTimer);
+            searchTimer = null;
+            search.value = "";
+            state.region = null;
+            regionSelect.value = "";
+            state.page = 1;
+            render();
+            search.focus();
+        }
+
+        function updateConfirmation() {
+            const ids = state.pending.ids;
+            byId("dialog-title").textContent = "确认删除所选数据包？";
+            byId("confirmation-detail").textContent = "即将删除已选的 " + format(ids.length) + " 条数据包，请核对以下 ID。";
+            byId("confirmation-ids").textContent = ids.join("、");
+        }
+
+        selectPage.addEventListener("change", () => {
+            if (state.busy) return;
+            const checked = selectPage.checked;
+            flushSearch();
+            state.visible.forEach((row) => {
+                if (row.id !== null) {
+                    if (checked) selected.add(row.id);
+                    else selected.delete(row.id);
+                }
+            });
+            updateControls();
+        });
+        byId("select-filtered").addEventListener("click", () => {
+            if (state.busy) return;
+            flushSearch();
+            state.filtered.forEach((row) => { if (row.id !== null) selected.add(row.id); });
+            updateControls();
+        });
+        byId("clear-selection").addEventListener("click", () => {
+            if (state.busy) return;
+            selected.clear();
+            updateControls();
+        });
+        rows.forEach((row) => {
+            row.checkbox.addEventListener("change", () => {
+                if (state.busy || row.id === null) return;
+                if (row.checkbox.checked) selected.add(row.id);
+                else selected.delete(row.id);
+                updateControls();
+            });
+        });
+        deleteSelected.addEventListener("click", () => {
+            if (state.busy || dialog.open || selected.size === 0) return;
+            state.pending = { ids: Array.from(selected).sort((a, b) => a - b), trigger: deleteSelected };
+            updateConfirmation();
+            dialogFeedback.textContent = "";
+            dialog.showModal();
+            byId("cancel-delete").focus();
+        });
+        byId("cancel-delete").addEventListener("click", () => { if (!state.busy) dialog.close(); });
+        dialog.addEventListener("cancel", (event) => { if (state.busy) event.preventDefault(); });
+        dialog.addEventListener("close", () => {
+            const trigger = state.pending && state.pending.trigger;
+            state.pending = null;
+            if (trigger && trigger.isConnected && !trigger.disabled) trigger.focus();
+            else search.focus();
+        });
+
+        byId("confirm-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            if (state.busy || !state.pending || !dialog.open) return;
+            const ids = state.pending.ids.slice();
+            if (ids.length === 0) return;
+            // Merge only consecutive selected IDs; unselected gaps never enter a request.
+            const ranges = [];
+            ids.forEach((id) => {
+                const last = ranges[ranges.length - 1];
+                if (last && id === last.to + 1) last.to = id;
+                else ranges.push({ from: id, to: id });
+            });
+            const headers = { "Content-Type": "application/json", "Accept": "application/json" };
+            let completed = 0;
+            state.busy = true;
+            state.progress = "已处理 0 / " + format(ids.length) + " 条，请等待服务端确认。";
+            updateControls();
+            dialogFeedback.textContent = "";
+            announce("正在提交删除请求，请勿重复操作或关闭页面...", "loading");
+            try {
+                for (const { from, to } of ranges) {
+                    const controller = new AbortController();
+                    const timeout = setTimeout(() => controller.abort(), 20000);
+                    try {
+                        const response = await fetch("/v1/packet/delete", {
+                            method: "DELETE", headers, credentials: "same-origin", cache: "no-store",
+                            redirect: "error", signal: controller.signal,
+                            body: JSON.stringify({ from, to })
+                        });
+                        let result;
+                        try {
+                            result = await response.json();
+                        } catch {
+                            throw new Error("服务端响应无法解析（HTTP " + response.status + "），请刷新确认服务端状态。");
+                        }
+                        const message = result && typeof result.msg === "string" ? result.msg.trim() : "";
+                        if (!response.ok) {
+                            throw new Error("删除失败（HTTP " + response.status + "）。" + (message || "请稍后重试。"));
+                        }
+                        if (!result || result.code !== 0) {
+                            throw new Error(message || "服务端未确认删除成功，请刷新确认状态。");
+                        }
+
+                        // Commit each range only after HTTP and business-level success.
+                        rows = rows.filter((row) => {
+                            if (selected.has(row.id) && row.id >= from && row.id <= to) {
+                                row.element.remove();
+                                return false;
+                            }
+                            return true;
+                        });
+                        state.pending.ids = state.pending.ids.filter((id) => {
+                            if (id >= from && id <= to) {
+                                selected.delete(id);
+                                completed++;
+                                return false;
+                            }
+                            return true;
+                        });
+                        state.progress = "已处理 " + format(completed) + " / " + format(ids.length) + " 条，请等待服务端确认。";
+                        rebuildRegions();
+                        render();
+                    } finally {
+                        clearTimeout(timeout);
+                    }
+                }
+                dialog.close();
+                announce("删除成功，已从当前列表移除 " + format(completed) + " 条所选记录。", "success");
+            } catch (error) {
+                const message = error.name === "AbortError"
+                    ? "请求超时，服务端可能仍在处理，请刷新确认状态后再重试。"
+                    : error instanceof TypeError
+                        ? "网络请求未完成，请检查网络并刷新确认服务端状态后再重试。"
+                        : error.message || "删除失败。";
+                const progress = "本次已删除 " + format(completed) + " 条，剩余 " + format(state.pending.ids.length) +
+                    " 条保留选择；未确认成功的记录未从列表移除。";
+                updateConfirmation();
+                announce(message + " " + progress, "error");
+                dialogFeedback.textContent = message + " " + progress;
+            } finally {
+                state.busy = false;
+                updateControls();
+            }
+        });
+
+        search.addEventListener("input", () => {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => { searchTimer = null; state.page = 1; render(); }, 160);
+        });
+        regionSelect.addEventListener("change", () => {
+            state.region = regionSelect.value === "" ? null : regions[Number(regionSelect.value)];
+            state.page = 1;
+            render();
+        });
+        pageSize.addEventListener("change", () => {
+            const size = Number(pageSize.value);
+            state.size = [20, 50, 100].includes(size) ? size : 20;
+            state.page = 1;
+            render();
+        });
+        byId("previous-page").addEventListener("click", () => { if (!state.busy && state.page > 1) { state.page--; render(); } });
+        byId("next-page").addEventListener("click", () => { if (!state.busy && state.page * state.size < state.matches) { state.page++; render(); } });
+        byId("reset-filters").addEventListener("click", resetFilters);
+        byId("empty-reset").addEventListener("click", resetFilters);
+        refreshButton.addEventListener("click", () => {
+            if (state.busy) return;
+            refreshButton.disabled = true;
+            refreshButton.textContent = "正在刷新...";
+            announce("正在重新加载列表...", "loading");
+            window.location.reload();
+        });
+        rebuildRegions();
+        render();
+    })();
+</script>
+</body>
+</html>
+{{ end }}

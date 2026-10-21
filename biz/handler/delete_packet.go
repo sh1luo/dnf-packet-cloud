@@ -5,9 +5,7 @@ package handler
 import (
 	"context"
 	"fmt"
-	"log"
 	packet "packet_cloud/biz/model/hertz/packet"
-	"packet_cloud/service/readwriter"
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
@@ -16,43 +14,23 @@ import (
 // DeletePacket .
 // @router /v1/packet/delete [DELETE]
 func DeletePacket(ctx context.Context, c *app.RequestContext) {
-	var err error
 	var req packet.DeletePacketReq
-	err = c.BindAndValidate(&req)
+	if err := c.BindAndValidate(&req); err != nil {
+		JSONError(c, consts.StatusBadRequest, "请求格式不正确")
+		return
+	}
+	if req.From < 1 || req.To < req.From {
+		JSONError(c, consts.StatusBadRequest, "ID 范围必须为正整数，且起始 ID 不大于结束 ID")
+		return
+	}
+	deletedIDs, err := Repository(c).DeleteRange(ctx, req.From, req.To)
 	if err != nil {
-		log.Println(err)
-		c.String(consts.StatusBadRequest, err.Error())
+		storageError(c, err)
 		return
 	}
 
-	var (
-		deletedIDs = make([]int32, 0)
-	)
-
-	packets, err := readwriter.ReadPacket(readwriter.LFS)
-	if err != nil {
-		log.Println("[DeletePacket] read file error:", err)
-		c.JSON(consts.StatusInternalServerError, err)
-		return
-	}
-
-	remaining := make([]*packet.CloudPacket, 0)
-	for _, p := range packets {
-		if p.Id >= req.GetFrom() && p.Id <= req.GetTo() {
-			deletedIDs = append(deletedIDs, p.Id)
-		} else {
-			remaining = append(remaining, p)
-		}
-	}
-
-	err = readwriter.SavePacket(remaining, readwriter.LFS)
-	if err != nil {
-		c.JSON(consts.StatusInternalServerError, err)
-		return
-	}
-
-	c.JSON(consts.StatusOK, &packet.DeletePacketResp{
-		Code: 0,
-		Msg:  fmt.Sprintf("删除成功, 共删除 %d 个数据包, 被删除的数据包 ID 为 %v", len(deletedIDs), deletedIDs),
+	c.JSON(consts.StatusOK, map[string]any{
+		"code": 0,
+		"msg":  fmt.Sprintf("删除成功, 共删除 %d 个数据包, 被删除的数据包 ID 为 %v", len(deletedIDs), deletedIDs),
 	})
 }

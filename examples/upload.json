@@ -1,0 +1,18 @@
+{
+  "cloud_packet": {
+    "region": "跨1",
+    "name": "本地示例数据包",
+    "channel": "1",
+    "uploader": "dev",
+    "time": "2026-10-21",
+    "user_packets": [
+      {
+        "id": 0,
+        "name": "示例项",
+        "content": "data",
+        "size": 4,
+        "send_timing": ""
+      }
+    ]
+  }
+}

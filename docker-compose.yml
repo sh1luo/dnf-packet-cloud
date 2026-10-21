@@ -1,12 +1,21 @@
-version: '3'
-
+name: dnf-packet-cloud-dev
 services:
   mysql:
-    image: 'mysql:latest'
+    image: mysql:8.4.7
     ports:
-      - 3306:3306
+      - "127.0.0.1:33067:3306"
     environment:
-      - MYSQL_DATABASE=gorm
-      - MYSQL_USER=gorm
-      - MYSQL_PASSWORD=gorm
-      - MYSQL_RANDOM_ROOT_PASSWORD="yes"
+      MYSQL_DATABASE: packet_cloud_test
+      MYSQL_USER: packet_test
+      MYSQL_PASSWORD: packet_test
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_PASSWORD mysql -h 127.0.0.1 -u $$MYSQL_USER $$MYSQL_DATABASE -e 'SELECT 1'"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+    volumes:
+      - packet-mysql:/var/lib/mysql
+
+volumes:
+  packet-mysql:

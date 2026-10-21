@@ -34,6 +34,17 @@ _testmain.go
 /output
 *.local.yml
 dumped_hertz_remote_config.json
-		  
 packet_cloud
 go_build_packet_cloud
+
+# Local debug data and private configuration
+/.runtime/
+/config/*.local.json
+.env
+coverage.out
+
+# Application data and crash output belong outside source control.
+/packets
+/packets.backup-*
+*.stackdump
+*.hertz.gz
