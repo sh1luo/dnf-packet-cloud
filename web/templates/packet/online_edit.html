@@ -76,18 +76,13 @@
         input[type="search"] { padding-left: 37px; }
         .search-wrap { position: relative; }
         .search-symbol { position: absolute; left: 13px; top: 13px; color: #8b94a7; pointer-events: none; }
-        .batch { display: flex; align-items: center; gap: 30px; padding: 16px 24px; border-top: 1px solid #f3dde0; background: #fff7f7; }
-        .batch-title { display: flex; align-items: center; gap: 11px; flex: none; }
-        .batch-mark { display: grid; place-items: center; width: 36px; height: 36px; background: #ffe8ea; color: var(--danger); border-radius: 8px; }
-        .batch-title h3 { font-size: 14px; font-weight: 650; }
-        .batch-title p { color: #95636a; font-size: 11px; margin-top: 3px; }
-        .batch-form { flex: 1; min-width: 0; }
-        .batch-fields { display: grid; grid-template-columns: minmax(120px, 185px) minmax(120px, 185px) auto; align-items: end; justify-content: start; gap: 12px; }
-        .batch-fields label { color: #79545b; }
-        .batch-fields input { border-color: #ead1d5; }
-        .batch-fields input[aria-invalid="true"] { border-color: var(--danger); }
+        .selection-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 24px; border-top: 1px solid var(--line); background: #f8f9fd; }
+        .selection-summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; font-size: 13px; }
+        .selection-summary strong { color: var(--blue); font-variant-numeric: tabular-nums; }
+        .selection-note { font-size: 12px; color: var(--muted); }
+        .selection-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+        .selection-actions .button { padding: 9px 12px; }
         .help { font-size: 12px; color: var(--muted); margin-top: 10px; }
-        .batch .help { font-size: 11px; color: #95636a; margin-top: 8px; }
         .feedback { min-height: 20px; margin: 0 2px 14px; font-size: 12px; overflow-wrap: anywhere; }
         .feedback[data-kind="success"] { color: #086d52; }
         .feedback[data-kind="error"] { color: var(--danger); }
@@ -101,19 +96,19 @@
         table { width: 100%; min-width: 1020px; border-collapse: collapse; table-layout: fixed; text-align: left; }
         th { padding: 13px 18px; background: #f8f9fc; font-size: 12px; color: #737e93; font-weight: 550; }
         td { padding: 12px 18px; border-top: 1px solid #edf0f5; font-size: 13px; vertical-align: middle; overflow-wrap: anywhere; }
-        th:first-child, td:first-child { padding-left: 24px; }
-        .action-cell { position: sticky; right: 0; padding-right: 24px; text-align: right; background: white; z-index: 1; }
-        th.action-cell { background: #f8f9fc; z-index: 2; }
-        .action-cell::before { content: ""; position: absolute; top: 0; bottom: 0; left: -9px; width: 9px; background: linear-gradient(to right, transparent, #25334d08); pointer-events: none; }
-        tbody tr:hover, tbody tr:hover .action-cell { background: #f7f9ff; }
+        .select-cell { position: sticky; left: 0; padding: 0 4px; text-align: center; background: white; z-index: 1; }
+        th.select-cell { background: #f8f9fc; z-index: 2; }
+        .select-cell::after { content: ""; position: absolute; top: 0; bottom: 0; right: -7px; width: 7px; background: linear-gradient(to right, #25334d08, transparent); pointer-events: none; }
+        .check-target { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 44px; min-height: 44px; margin: 0; vertical-align: middle; cursor: pointer; }
+        input[type="checkbox"] { width: 17px; height: 17px; min-height: 0; margin: 0; padding: 0; border-radius: 4px; accent-color: var(--blue); cursor: pointer; }
+        input[type="checkbox"]:disabled { cursor: not-allowed; }
+        tbody tr:hover, tbody tr:hover .select-cell { background: #f7f9ff; }
+        tbody tr[data-selected="true"], tbody tr[data-selected="true"] .select-cell { background: #eef3ff; }
         .id-cell { color: #818a9c; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; font-variant-numeric: tabular-nums; }
         .name-cell { font-weight: 550; }
         .region-badge { display: inline-block; background: #eef2ff; color: #4866ba; border-radius: 5px; padding: 3px 9px; font-size: 11px; white-space: nowrap; }
         .region-badge:empty { display: none; }
         .time-cell { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
-        .delete-button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-width: 76px; color: var(--danger); background: #fff5f5; border: 1px solid #f1cdd1; border-radius: 6px; padding: 8px 10px; font-size: 12px; font-weight: 550; white-space: nowrap; }
-        .delete-button .icon { width: 15px; height: 15px; }
-        .delete-button:hover:not(:disabled) { background: #ffe8eb; border-color: #da9da4; }
         .empty-state { padding: 62px 24px; text-align: center; border-top: 1px solid var(--line); }
         .empty-mark { display: grid; place-items: center; width: 52px; height: 52px; margin: 0 auto 16px; border: 1px solid #dce4fb; border-radius: 12px; background: #f4f6ff; font-size: 22px; color: var(--blue); }
         .empty-state h3 { font-size: 16px; }
@@ -131,6 +126,7 @@
         .dialog-tag { display: flex; align-items: center; gap: 7px; color: var(--danger); font-weight: 550; font-size: 12px; margin-bottom: 12px; }
         dialog h2 { font-size: 22px; margin-bottom: 14px; }
         .confirmation-detail { overflow-wrap: anywhere; }
+        .confirmation-ids { max-height: 140px; overflow-y: auto; padding: 12px; margin-top: 12px; border: 1px solid var(--line); border-radius: 7px; background: #f8f9fc; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; overflow-wrap: anywhere; }
         .warning { padding: 12px 14px; margin: 16px 0; border: 1px solid #eed8b1; border-radius: 8px; background: #fff9ef; color: #79511b; font-size: 12px; }
         .dialog-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 22px; }
         .dialog-feedback { color: var(--danger); font-size: 13px; overflow-wrap: anywhere; }
@@ -143,11 +139,7 @@
         @media (max-width: 900px) {
             .topbar-inner { padding: 12px 24px; }
             .workspace { padding: 24px; }
-            .batch { gap: 20px; }
-            .batch-fields { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; }
-            .batch-title p { display: none; }
-            .batch-mark { display: none; }
-            .action-cell { padding: 10px 12px; }
+            .selection-note { display: block; }
         }
         @media (max-width: 540px) {
             .topbar-inner { min-height: 60px; padding: 10px 16px; }
@@ -171,15 +163,12 @@
             .list-heading, .pagination { padding: 16px; }
             .list-heading { align-items: start; flex-direction: column; gap: 6px; }
             .list-heading > .list-note { font-size: 11px; }
-            .batch { display: block; padding: 16px; }
-            .batch-title { margin-bottom: 12px; }
-            .batch-mark { display: grid; width: 28px; height: 28px; border-radius: 6px; }
-            .batch-mark .icon { width: 16px; height: 16px; }
-            .batch-title p { display: block; margin: 0 0 0 auto; }
-            .batch-title > div:last-child { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex: 1; }
-            .batch-fields { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
-            .batch-fields > .button { grid-column: 1 / -1; width: 100%; }
-            .batch .help { line-height: 1.65; }
+            .selection-bar { padding: 12px 16px; gap: 10px; }
+            .selection-summary { gap: 4px; }
+            .selection-note { width: 100%; font-size: 11px; }
+            .selection-actions { width: 100%; gap: 7px; }
+            .selection-actions .button { padding: 9px; font-size: 12px; }
+            #delete-selected { margin-left: auto; }
             .pagination-actions { width: 100%; gap: 8px; }
             .page-size { width: 100%; margin: 0 0 4px; }
             .pagination-actions > .button { flex: 1; }
@@ -227,7 +216,7 @@
     <section class="panel" aria-labelledby="list-heading">
         <div class="list-heading">
             <div class="list-title"><h2 id="list-heading">数据包列表</h2><span class="count-badge" id="list-count">{{ len .packets }} 条</span></div>
-            <p class="list-note" id="table-help">每行右侧可删除 · 横向滚动查看更多</p>
+            <p class="list-note" id="table-help">勾选后批量删除 · 表头可全选当前页</p>
         </div>
         <div class="toolbar" role="search" aria-label="筛选数据包">
             <div>
@@ -243,42 +232,33 @@
             </div>
             <button class="button" id="reset-filters" type="button" data-lock disabled>重置筛选</button>
         </div>
-        <section class="batch" aria-labelledby="batch-heading">
-            <div class="batch-title">
-                <span class="batch-mark" aria-hidden="true"><svg class="icon"><use href="#icon-trash"/></svg></span>
-                <div><h3 id="batch-heading">批量删除</h3><p>按 ID 范围清理</p></div>
+        <div class="selection-bar" role="group" aria-label="批量管理数据包">
+            <div class="selection-summary">
+                <span>已选 <strong id="selected-count">0</strong> 条</span>
+                <span class="selection-note" id="selection-note" role="status" aria-live="polite">勾选记录后可批量删除，支持跨页选择。</span>
             </div>
-            <form id="range-form" class="batch-form" novalidate>
-                <div class="batch-fields">
-                    <div>
-                        <label for="from">起始 ID</label>
-                        <input id="from" type="text" inputmode="numeric" pattern="[0-9]+" maxlength="10" placeholder="例如 100" autocomplete="off" aria-describedby="range-help" required data-lock disabled>
-                    </div>
-                    <div>
-                        <label for="to">结束 ID</label>
-                        <input id="to" type="text" inputmode="numeric" pattern="[0-9]+" maxlength="10" placeholder="例如 120" autocomplete="off" aria-describedby="range-help" required data-lock disabled>
-                    </div>
-                    <button class="button button-destructive" id="range-button" type="submit" data-lock disabled><svg class="icon" aria-hidden="true"><use href="#icon-trash"/></svg>删除此范围</button>
-                </div>
-                <p class="help" id="range-help">包含起止 ID，不受筛选与分页限制。提交后需确认，删除不可撤销。</p>
-            </form>
-        </section>
+            <div class="selection-actions">
+                <button class="button" id="select-filtered" type="button" data-lock disabled>全选筛选结果</button>
+                <button class="button" id="clear-selection" type="button" data-lock disabled>取消选择</button>
+                <button class="button button-destructive" id="delete-selected" type="button" data-lock disabled><svg class="icon" aria-hidden="true"><use href="#icon-trash"/></svg>删除所选</button>
+            </div>
+        </div>
         <div class="table-scroll" id="table-scroll" role="region" aria-label="数据包表格，可横向滚动" aria-describedby="table-help" tabindex="0">
             <table id="packet-table">
-                <caption class="sr-only">云端数据包摘要及删除操作</caption>
-                <colgroup><col style="width: 8%"><col style="width: 24%"><col style="width: 10%"><col style="width: 11%"><col style="width: 15%"><col style="width: 19%"><col style="width: 13%"></colgroup>
-                <thead><tr><th scope="col">ID</th><th scope="col">数据包名称</th><th scope="col">区域</th><th scope="col">频道</th><th scope="col">上传者</th><th scope="col">上传时间</th><th class="action-cell" scope="col">删除操作</th></tr></thead>
+                <caption class="sr-only">云端数据包摘要及多选操作</caption>
+                <colgroup><col style="width: 6%"><col style="width: 7%"><col style="width: 27%"><col style="width: 10%"><col style="width: 10%"><col style="width: 17%"><col style="width: 23%"></colgroup>
+                <thead><tr><th class="select-cell" scope="col"><label class="check-target" title="全选当前页"><input id="select-page" type="checkbox" aria-label="全选当前页数据包" data-lock disabled><span class="sr-only">全选当前页</span></label></th><th scope="col">ID</th><th scope="col">数据包名称</th><th scope="col">区域</th><th scope="col">频道</th><th scope="col">上传者</th><th scope="col">上传时间</th></tr></thead>
                 <tbody id="packet-rows">
                 {{ range .packets }}
                 {{ if . }}
                 <tr>
+                    <td class="select-cell"><label class="check-target"><input type="checkbox" data-select data-lock disabled aria-label="选择数据包 {{ .Id }}"><span class="sr-only">选择数据包 {{ .Id }}</span></label></td>
                     <td class="id-cell" data-field="id">{{ .Id }}</td>
                     <td class="name-cell"><span data-field="name">{{ .Name }}</span>{{ if not .Name }}<span class="list-note">未命名</span>{{ end }}</td>
                     <td><span class="region-badge" data-field="region">{{ .Region }}</span>{{ if not .Region }}<span class="list-note">未填写</span>{{ end }}</td>
                     <td><span data-field="channel">{{ .Channel }}</span>{{ if not .Channel }}<span class="list-note">未填写</span>{{ end }}</td>
                     <td><span data-field="uploader">{{ .Uploader }}</span>{{ if not .Uploader }}<span class="list-note">未填写</span>{{ end }}</td>
                     <td class="time-cell"><span data-field="time">{{ .Time }}</span>{{ if not .Time }}<span class="list-note">未填写</span>{{ end }}</td>
-                    <td class="action-cell"><button class="delete-button" type="button" data-delete data-lock disabled><svg class="icon" aria-hidden="true"><use href="#icon-trash"/></svg>删除<span class="sr-only">数据包 {{ .Id }}</span></button></td>
                 </tr>
                 {{ end }}
                 {{ end }}
@@ -304,14 +284,15 @@
             </div>
         </nav>
     </section>
-    <footer class="footer"><span>Packet Cloud / 管理工作台</span><span>删除不可撤销，请在操作前确认 ID 与范围。</span></footer>
+    <footer class="footer"><span>Packet Cloud / 管理工作台</span><span>删除不可撤销，请确认所选记录。</span></footer>
 </main>
 <dialog id="delete-dialog" aria-labelledby="dialog-title" aria-describedby="confirmation-detail confirmation-warning">
     <form id="confirm-form">
         <p class="dialog-tag"><svg class="icon" aria-hidden="true"><use href="#icon-trash"/></svg>删除确认</p>
         <h2 id="dialog-title">确认删除数据包？</h2>
         <p class="confirmation-detail" id="confirmation-detail"></p>
-        <p class="warning" id="confirmation-warning">此操作不可撤销。匹配数量基于当前列表快照，服务端可能已有新增或变更；范围内的记录均会被删除，包括未显示的记录。</p>
+        <p class="confirmation-ids" id="confirmation-ids" tabindex="0" aria-label="待删除的数据包 ID"></p>
+        <p class="warning" id="confirmation-warning">此操作不可撤销。仅删除所选 ID 对应的记录，包含其他页或被筛选隐藏的已选记录。</p>
         <p class="help" id="dialog-status" role="status" aria-live="polite" aria-atomic="true"></p>
         <p class="dialog-feedback" id="dialog-feedback" role="alert" aria-atomic="true"></p>
         <div class="dialog-actions">
@@ -328,17 +309,18 @@
         const search = byId("search");
         const regionSelect = byId("region");
         const pageSize = byId("page-size");
-        const fromInput = byId("from");
-        const toInput = byId("to");
+        const selectPage = byId("select-page");
+        const deleteSelected = byId("delete-selected");
+        const selected = new Set();
         const dialog = byId("delete-dialog");
         const confirmButton = byId("confirm-delete");
         const refreshButton = byId("refresh-button");
         const feedback = byId("feedback");
         const dialogFeedback = byId("dialog-feedback");
         const format = (number) => number.toLocaleString("zh-CN");
-        const state = { page: 1, size: 20, region: null, busy: false, pending: null, matches: 0 };
+        const state = { page: 1, size: 20, region: null, busy: false, pending: null, matches: 0, filtered: [], visible: [], progress: "" };
         let regions = [];
-        let searchTimer;
+        let searchTimer = null;
 
         function parsePacketId(value) {
             const text = String(value).trim();
@@ -357,7 +339,7 @@
                 region: field("region"),
                 uploader: field("uploader"),
                 searchText: [field("id"), field("name"), field("uploader"), field("channel")].map((value) => value.toLocaleLowerCase("zh-CN")),
-                button: element.querySelector("[data-delete]")
+                checkbox: element.querySelector("[data-select]")
             };
         });
 
@@ -389,12 +371,29 @@
             byId("previous-page").disabled = state.busy || state.page <= 1;
             byId("next-page").disabled = state.busy || state.page * state.size >= state.matches;
             rows.forEach((row) => {
-                row.button.disabled = state.busy || row.id === null;
-                row.button.title = row.id === null ? "ID 不在有效的正整数范围内，无法删除" : "";
+                row.checkbox.disabled = state.busy || row.id === null;
+                row.checkbox.title = row.id === null ? "ID 不在有效的正整数范围内，无法选择" : "";
+                row.checkbox.checked = selected.has(row.id);
+                row.element.dataset.selected = String(row.checkbox.checked);
             });
+            const selectable = state.visible.filter((row) => row.id !== null);
+            const selectedVisible = selectable.filter((row) => selected.has(row.id)).length;
+            selectPage.disabled = state.busy || selectable.length === 0;
+            selectPage.checked = selectable.length > 0 && selectedVisible === selectable.length;
+            selectPage.indeterminate = selectedVisible > 0 && selectedVisible < selectable.length;
+            byId("select-filtered").disabled = state.busy || !state.filtered.some((row) => row.id !== null && !selected.has(row.id));
+            byId("clear-selection").disabled = state.busy || selected.size === 0;
+            deleteSelected.disabled = state.busy || selected.size === 0;
+            byId("selected-count").textContent = format(selected.size);
+            const hiddenSelected = selected.size - selectedVisible;
+            byId("selection-note").textContent = selected.size === 0
+                ? "勾选记录后可批量删除，支持跨页选择。"
+                : hiddenSelected > 0
+                    ? "其中 " + format(hiddenSelected) + " 条未显示在当前页。"
+                    : "仅删除已勾选的记录。";
             confirmButton.textContent = state.busy ? "正在删除..." : "确认删除";
             confirmButton.setAttribute("aria-busy", String(state.busy));
-            byId("dialog-status").textContent = state.busy ? "正在删除，请等待服务端确认，勿关闭页面。" : "";
+            byId("dialog-status").textContent = state.busy ? state.progress : "";
             byId("packet-table").setAttribute("aria-busy", String(state.busy));
         }
 
@@ -404,12 +403,14 @@
                 (state.region === null || row.region === state.region) &&
                 (!query || row.searchText.some((value) => value.includes(query)))
             );
+            state.filtered = matches;
             state.matches = matches.length;
             const pages = Math.ceil(matches.length / state.size);
             state.page = Math.max(1, Math.min(state.page, pages || 1));
             const start = (state.page - 1) * state.size;
+            state.visible = matches.slice(start, start + state.size);
             rows.forEach((row) => { row.element.hidden = true; });
-            matches.slice(start, start + state.size).forEach((row) => { row.element.hidden = false; });
+            state.visible.forEach((row) => { row.element.hidden = false; });
 
             byId("total-count").textContent = format(rows.length);
             byId("match-count").textContent = format(matches.length);
@@ -430,8 +431,17 @@
             updateControls();
         }
 
+        function flushSearch() {
+            if (searchTimer === null) return;
+            clearTimeout(searchTimer);
+            searchTimer = null;
+            state.page = 1;
+            render();
+        }
+
         function resetFilters() {
             clearTimeout(searchTimer);
+            searchTimer = null;
             search.value = "";
             state.region = null;
             regionSelect.value = "";
@@ -440,47 +450,51 @@
             search.focus();
         }
 
-        function openConfirmation(from, to, trigger, name) {
-            if (state.busy || dialog.open) return;
-            if (parsePacketId(from) === null || parsePacketId(to) === null || from > to) {
-                announce("删除范围无效，请使用有效的正整数 ID。", "error");
-                return;
-            }
-            const count = rows.filter((row) => row.id !== null && row.id >= from && row.id <= to).length;
-            state.pending = { from, to, trigger };
-            byId("dialog-title").textContent = from === to ? "确认删除数据包？" : "确认删除此 ID 范围？";
-            byId("confirmation-detail").textContent = (from === to
-                ? "即将删除 ID " + from + (name ? "（" + name + "）" : "") + "。"
-                : "即将删除 ID " + from + " 至 " + to + "（含两端）的所有数据包。") +
-                " 当前完整列表中匹配 " + format(count) + " 条。";
+        function updateConfirmation() {
+            const ids = state.pending.ids;
+            byId("dialog-title").textContent = "确认删除所选数据包？";
+            byId("confirmation-detail").textContent = "即将删除已选的 " + format(ids.length) + " 条数据包，请核对以下 ID。";
+            byId("confirmation-ids").textContent = ids.join("、");
+        }
+
+        selectPage.addEventListener("change", () => {
+            if (state.busy) return;
+            const checked = selectPage.checked;
+            flushSearch();
+            state.visible.forEach((row) => {
+                if (row.id !== null) {
+                    if (checked) selected.add(row.id);
+                    else selected.delete(row.id);
+                }
+            });
+            updateControls();
+        });
+        byId("select-filtered").addEventListener("click", () => {
+            if (state.busy) return;
+            flushSearch();
+            state.filtered.forEach((row) => { if (row.id !== null) selected.add(row.id); });
+            updateControls();
+        });
+        byId("clear-selection").addEventListener("click", () => {
+            if (state.busy) return;
+            selected.clear();
+            updateControls();
+        });
+        rows.forEach((row) => {
+            row.checkbox.addEventListener("change", () => {
+                if (state.busy || row.id === null) return;
+                if (row.checkbox.checked) selected.add(row.id);
+                else selected.delete(row.id);
+                updateControls();
+            });
+        });
+        deleteSelected.addEventListener("click", () => {
+            if (state.busy || dialog.open || selected.size === 0) return;
+            state.pending = { ids: Array.from(selected).sort((a, b) => a - b), trigger: deleteSelected };
+            updateConfirmation();
             dialogFeedback.textContent = "";
             dialog.showModal();
             byId("cancel-delete").focus();
-        }
-
-        byId("range-form").addEventListener("submit", (event) => {
-            event.preventDefault();
-            if (state.busy) return;
-            const from = parsePacketId(fromInput.value);
-            const to = parsePacketId(toInput.value);
-            fromInput.setAttribute("aria-invalid", String(from === null));
-            toInput.setAttribute("aria-invalid", String(to === null));
-            if (from === null || to === null) {
-                announce("请输入 1 至 2147483647 的整数 ID；不接受小数、负数或科学计数法。", "error");
-                (from === null ? fromInput : toInput).focus();
-                return;
-            }
-            if (from > to) {
-                toInput.setAttribute("aria-invalid", "true");
-                announce("结束 ID 不能小于起始 ID，请检查删除范围。", "error");
-                toInput.focus();
-                return;
-            }
-            openConfirmation(from, to, byId("range-button"));
-        });
-
-        rows.forEach((row) => {
-            row.button.addEventListener("click", () => openConfirmation(row.id, row.id, row.button, row.name));
         });
         byId("cancel-delete").addEventListener("click", () => { if (!state.busy) dialog.close(); });
         dialog.addEventListener("cancel", (event) => { if (state.busy) event.preventDefault(); });
@@ -494,61 +508,83 @@
         byId("confirm-form").addEventListener("submit", async (event) => {
             event.preventDefault();
             if (state.busy || !state.pending || !dialog.open) return;
-            const { from, to } = state.pending;
+            const ids = state.pending.ids.slice();
+            if (ids.length === 0) return;
+            // Merge only consecutive selected IDs; unselected gaps never enter a request.
+            const ranges = [];
+            ids.forEach((id) => {
+                const last = ranges[ranges.length - 1];
+                if (last && id === last.to + 1) last.to = id;
+                else ranges.push({ from: id, to: id });
+            });
             const headers = { "Content-Type": "application/json", "Accept": "application/json" };
+            let completed = 0;
             state.busy = true;
+            state.progress = "已处理 0 / " + format(ids.length) + " 条，请等待服务端确认。";
             updateControls();
             dialogFeedback.textContent = "";
             announce("正在提交删除请求，请勿重复操作或关闭页面...", "loading");
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 20000);
             try {
-                const response = await fetch("/v1/packet/delete", {
-                    method: "DELETE",
-                    headers,
-                    credentials: "same-origin",
-                    cache: "no-store",
-                    redirect: "error",
-                    signal: controller.signal,
-                    body: JSON.stringify({ from, to })
-                });
-                let result;
-                try {
-                    result = await response.json();
-                } catch {
-                    throw new Error("服务端响应无法解析（HTTP " + response.status + "），列表未作更改。请刷新确认服务端状态。");
-                }
-                const message = result && typeof result.msg === "string" ? result.msg.trim() : "";
-                if (!response.ok) {
-                    throw new Error("删除失败（HTTP " + response.status + "）。" + (message || "请检查权限或稍后重试。") + " 列表未作更改。");
-                }
-                if (!result || result.code !== 0) {
-                    throw new Error((message || "服务端未确认删除成功，请刷新确认状态后再重试。") + " 列表未作更改。");
-                }
+                for (const { from, to } of ranges) {
+                    const controller = new AbortController();
+                    const timeout = setTimeout(() => controller.abort(), 20000);
+                    try {
+                        const response = await fetch("/v1/packet/delete", {
+                            method: "DELETE", headers, credentials: "same-origin", cache: "no-store",
+                            redirect: "error", signal: controller.signal,
+                            body: JSON.stringify({ from, to })
+                        });
+                        let result;
+                        try {
+                            result = await response.json();
+                        } catch {
+                            throw new Error("服务端响应无法解析（HTTP " + response.status + "），请刷新确认服务端状态。");
+                        }
+                        const message = result && typeof result.msg === "string" ? result.msg.trim() : "";
+                        if (!response.ok) {
+                            throw new Error("删除失败（HTTP " + response.status + "）。" + (message || "请稍后重试。"));
+                        }
+                        if (!result || result.code !== 0) {
+                            throw new Error(message || "服务端未确认删除成功，请刷新确认状态。");
+                        }
 
-                // Commit local changes only after both HTTP and business-level success.
-                const previousCount = rows.length;
-                rows = rows.filter((row) => {
-                    if (row.id !== null && row.id >= from && row.id <= to) {
-                        row.element.remove();
-                        return false;
+                        // Commit each range only after HTTP and business-level success.
+                        rows = rows.filter((row) => {
+                            if (selected.has(row.id) && row.id >= from && row.id <= to) {
+                                row.element.remove();
+                                return false;
+                            }
+                            return true;
+                        });
+                        state.pending.ids = state.pending.ids.filter((id) => {
+                            if (id >= from && id <= to) {
+                                selected.delete(id);
+                                completed++;
+                                return false;
+                            }
+                            return true;
+                        });
+                        state.progress = "已处理 " + format(completed) + " / " + format(ids.length) + " 条，请等待服务端确认。";
+                        rebuildRegions();
+                        render();
+                    } finally {
+                        clearTimeout(timeout);
                     }
-                    return true;
-                });
-                rebuildRegions();
-                render();
+                }
                 dialog.close();
-                announce("删除成功，已从当前列表移除 " + format(previousCount - rows.length) + " 条记录。" + (message ? " " + message : ""), "success");
+                announce("删除成功，已从当前列表移除 " + format(completed) + " 条所选记录。", "success");
             } catch (error) {
                 const message = error.name === "AbortError"
-                    ? "请求超时，列表未作更改。服务端可能仍在处理，请刷新确认状态后再重试。"
+                    ? "请求超时，服务端可能仍在处理，请刷新确认状态后再重试。"
                     : error instanceof TypeError
-                        ? "网络请求未完成，列表未作更改。请检查网络并刷新确认服务端状态后再重试。"
-                        : error.message || "删除失败，列表未作更改。";
-                announce(message, "error");
-                dialogFeedback.textContent = message;
+                        ? "网络请求未完成，请检查网络并刷新确认服务端状态后再重试。"
+                        : error.message || "删除失败。";
+                const progress = "本次已删除 " + format(completed) + " 条，剩余 " + format(state.pending.ids.length) +
+                    " 条保留选择；未确认成功的记录未从列表移除。";
+                updateConfirmation();
+                announce(message + " " + progress, "error");
+                dialogFeedback.textContent = message + " " + progress;
             } finally {
-                clearTimeout(timeout);
                 state.busy = false;
                 updateControls();
             }
@@ -556,7 +592,7 @@
 
         search.addEventListener("input", () => {
             clearTimeout(searchTimer);
-            searchTimer = setTimeout(() => { state.page = 1; render(); }, 160);
+            searchTimer = setTimeout(() => { searchTimer = null; state.page = 1; render(); }, 160);
         });
         regionSelect.addEventListener("change", () => {
             state.region = regionSelect.value === "" ? null : regions[Number(regionSelect.value)];
