@@ -8,7 +8,7 @@
 
 | JSON 字段 | 环境变量 | 默认值 / 行为 |
 | --- | --- | --- |
-| `StorageMedia` | `STORAGE_MEDIA` | `lfs`，或 `mysql` |
+| `StorageMedia` | `STORAGE_MEDIA` | 默认 `lfs`，支持 `mysql`；旧值 `rds` 加载后统一为 `mysql` |
 | `PacketsFilePath` | `PACKETS_FILE_PATH` | `./packets` |
 | `HostPorts` | `PACKET_HOST_PORTS` | `127.0.0.1:8080` |
 | `WriteToken` | `PACKET_WRITE_TOKEN` | 空；设置后仅上传要求 Bearer，后台删除无需令牌 |
@@ -22,6 +22,8 @@
 | `MySQL.SlowQueryMs` | — | 200，兼容字段，当前不用于慢查询阈值日志 |
 
 非空上传令牌须为可见 ASCII，不能包含空白或控制字符。监听端口须在 1～65535 范围。
+
+旧部署使用 `StorageMedia: "rds"` 或 `STORAGE_MEDIA=rds` 时继续选择 MySQL，同样要求非空 `MySQL.DSN`；升级无需改写这个别名，读取配置副本时得到规范值 `mysql`。
 
 ```bash
 PACKET_CONFIG=config/dev.local.json go run .

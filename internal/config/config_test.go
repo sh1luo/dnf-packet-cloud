@@ -3,8 +3,45 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
+
+func TestLoadLegacyRDSAlias(t *testing.T) {
+	for _, source := range []string{"file", "environment"} {
+		t.Run(source, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "config.json")
+			value := `{"StorageMedia":"rds","MySQL":{"DSN":"test:pass@tcp(localhost:3306)/packets"}}`
+			if source == "environment" {
+				value = `{"StorageMedia":"lfs","MySQL":{"DSN":"test:pass@tcp(localhost:3306)/packets"}}`
+				t.Setenv("STORAGE_MEDIA", "rds")
+			}
+			if err := os.WriteFile(path, []byte(value), 0600); err != nil {
+				t.Fatal(err)
+			}
+			if err := Load(path); err != nil {
+				t.Fatalf("supported legacy rds configuration rejected: %v", err)
+			}
+			if got := Get().StorageMedia; got != "mysql" {
+				t.Fatalf("rds must select canonical mysql storage, got %q", got)
+			}
+		})
+	}
+}
+
+func TestLegacyRDSAliasRequiresDSN(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.json")
+	if err := os.WriteFile(path, []byte(`{"StorageMedia":"rds","MySQL":{"DSN":""}}`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	before := *Get()
+	if err := Load(path); err == nil || !strings.Contains(err.Error(), "MySQL.DSN") {
+		t.Fatalf("rds must apply the mysql DSN requirement, got %v", err)
+	}
+	if *Get() != before {
+		t.Fatal("invalid rds load changed the published snapshot")
+	}
+}
 
 func TestLoadPrecedenceAndCopy(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.json")

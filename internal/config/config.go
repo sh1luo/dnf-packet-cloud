@@ -92,6 +92,10 @@ func Load(path string) error {
 			*target = value
 		}
 	}
+	// Existing deployments use rds as the MySQL storage alias.
+	if x.StorageMedia == "rds" {
+		x.StorageMedia = "mysql"
+	}
 	if err := x.Validate(); err != nil {
 		return err
 	}

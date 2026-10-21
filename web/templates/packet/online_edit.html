@@ -106,7 +106,7 @@
         tbody tr[data-selected="true"], tbody tr[data-selected="true"] .select-cell { background: #eef3ff; }
         .id-cell { color: #818a9c; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; font-variant-numeric: tabular-nums; }
         .name-cell { font-weight: 550; }
-        .region-badge { display: inline-block; background: #eef2ff; color: #4866ba; border-radius: 5px; padding: 3px 9px; font-size: 11px; white-space: nowrap; }
+        .region-badge { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; background: #eef2ff; color: #4866ba; border-radius: 5px; padding: 3px 9px; font-size: 11px; white-space: nowrap; }
         .region-badge:empty { display: none; }
         .time-cell { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
         .empty-state { padding: 62px 24px; text-align: center; border-top: 1px solid var(--line); }
@@ -255,7 +255,7 @@
                     <td class="select-cell"><label class="check-target"><input type="checkbox" data-select data-lock disabled aria-label="选择数据包 {{ .Id }}"><span class="sr-only">选择数据包 {{ .Id }}</span></label></td>
                     <td class="id-cell" data-field="id">{{ .Id }}</td>
                     <td class="name-cell"><span data-field="name">{{ .Name }}</span>{{ if not .Name }}<span class="list-note">未命名</span>{{ end }}</td>
-                    <td><span class="region-badge" data-field="region">{{ .Region }}</span>{{ if not .Region }}<span class="list-note">未填写</span>{{ end }}</td>
+                    <td><span class="region-badge" data-field="region" title="{{ .Region }}">{{ .Region }}</span>{{ if not .Region }}<span class="list-note">未填写</span>{{ end }}</td>
                     <td><span data-field="channel">{{ .Channel }}</span>{{ if not .Channel }}<span class="list-note">未填写</span>{{ end }}</td>
                     <td><span data-field="uploader">{{ .Uploader }}</span>{{ if not .Uploader }}<span class="list-note">未填写</span>{{ end }}</td>
                     <td class="time-cell"><span data-field="time">{{ .Time }}</span>{{ if not .Time }}<span class="list-note">未填写</span>{{ end }}</td>

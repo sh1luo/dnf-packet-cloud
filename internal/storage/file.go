@@ -46,6 +46,25 @@ func NewLocalFileSystem(path string) (*LocalFileSystem, error) {
 
 func (s *LocalFileSystem) Close() error { return nil }
 
+// Persisted cloud IDs address one record. Incoming Append IDs are ignored and
+// deliberately use the less restrictive validatePackets check instead.
+func validatePersistedPackets(packets []*packet.CloudPacket) error {
+	if err := validatePackets(packets); err != nil {
+		return err
+	}
+	seen := make(map[int32]struct{}, len(packets))
+	for i, p := range packets {
+		if p.Id < 1 {
+			return fmt.Errorf("%w: cloud packet %d has non-positive ID %d", ErrInvalidPacket, i, p.Id)
+		}
+		if _, exists := seen[p.Id]; exists {
+			return fmt.Errorf("%w: duplicate cloud packet ID %d", ErrInvalidPacket, p.Id)
+		}
+		seen[p.Id] = struct{}{}
+	}
+	return nil
+}
+
 func (s *LocalFileSystem) loadLocked(ctx context.Context) error {
 	if err := ctx.Err(); err != nil {
 		return err
@@ -83,7 +102,7 @@ func (s *LocalFileSystem) loadLocked(ctx context.Context) error {
 	if packets == nil {
 		return fmt.Errorf("%w: file must contain a JSON array", ErrCorruptStorage)
 	}
-	if err := validatePackets(packets); err != nil {
+	if err := validatePersistedPackets(packets); err != nil {
 		return fmt.Errorf("%w: %v", ErrCorruptStorage, err)
 	}
 	if err := ctx.Err(); err != nil {
@@ -210,7 +229,7 @@ func (s *LocalFileSystem) ReadPacket() ([]*packet.CloudPacket, error) {
 
 // SavePacket is a legacy administrative replacement, not a request mutation.
 func (s *LocalFileSystem) SavePacket(packets []*packet.CloudPacket) error {
-	if err := validatePackets(packets); err != nil {
+	if err := validatePersistedPackets(packets); err != nil {
 		return err
 	}
 	in := clonePackets(packets)
