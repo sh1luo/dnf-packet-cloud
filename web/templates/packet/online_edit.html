@@ -106,7 +106,16 @@
         tbody tr[data-selected="true"], tbody tr[data-selected="true"] .select-cell { background: #eef3ff; }
         .id-cell { color: #818a9c; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; font-variant-numeric: tabular-nums; }
         .name-cell { font-weight: 550; }
-        .region-badge { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; background: #eef2ff; color: #4866ba; border-radius: 5px; padding: 3px 9px; font-size: 11px; white-space: nowrap; }
+        .region-badge { position: relative; display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; padding: 2px 8px 2px 18px; border: 1px solid #dfe5f0; border-radius: 6px; background: #f4f6fa; color: #4a5670; font-size: 11px; font-weight: 550; line-height: 18px; white-space: nowrap; }
+        .region-badge::before { content: ""; position: absolute; left: 8px; top: 50%; width: 5px; height: 5px; margin-top: -2.5px; border-radius: 50%; background: currentColor; }
+        .region-badge[data-tone="0"] { background: #eef1ff; border-color: #d7defb; color: #4557b8; }
+        .region-badge[data-tone="1"] { background: #e6f6f2; border-color: #c7e8df; color: #166f61; }
+        .region-badge[data-tone="2"] { background: #fdf3e2; border-color: #f1dcb6; color: #8a5c14; }
+        .region-badge[data-tone="3"] { background: #fdeef1; border-color: #f5d2dc; color: #a13a54; }
+        .region-badge[data-tone="4"] { background: #f4eefd; border-color: #e2d2f7; color: #6a41a5; }
+        .region-badge[data-tone="5"] { background: #e9f3fe; border-color: #cee3f9; color: #1d6091; }
+        .region-badge[data-tone="6"] { background: #eff6e4; border-color: #d8e9c1; color: #4f6b1a; }
+        .region-badge[data-tone="7"] { background: #eef1f6; border-color: #dae0e9; color: #455a75; }
         .region-badge:empty { display: none; }
         .time-cell { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
         .empty-state { padding: 62px 24px; text-align: center; border-top: 1px solid var(--line); }
@@ -339,6 +348,7 @@
                 region: field("region"),
                 uploader: field("uploader"),
                 searchText: [field("id"), field("name"), field("uploader"), field("channel")].map((value) => value.toLocaleLowerCase("zh-CN")),
+                regionBadge: element.querySelector('[data-field="region"]'),
                 checkbox: element.querySelector("[data-select]")
             };
         });
@@ -350,6 +360,11 @@
 
         function rebuildRegions() {
             regions = Array.from(new Set(rows.map((row) => row.region))).sort((a, b) => a.localeCompare(b, "zh-CN"));
+            // Give every named region a distinct tone so the same area keeps one color.
+            const tones = new Map(regions.filter((region) => region !== "").map((region, index) => [region, index % 8]));
+            rows.forEach((row) => {
+                if (row.region) row.regionBadge.dataset.tone = String(tones.get(row.region));
+            });
             regionSelect.replaceChildren();
             const all = document.createElement("option");
             all.value = "";
