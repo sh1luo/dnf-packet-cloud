@@ -10,6 +10,25 @@
 - 保留旧客户端 AES-CBC 协议；本地文件仅支持单进程写入，多实例使用 MySQL。
 - 页面和图标编译进二进制，无需 Node.js 或单独分发 HTML。
 
+## 运行截图
+
+以下为实际运行的管理页面，使用合成示例数据。
+
+**桌面列表**：搜索、区域筛选、排序和批量管理。
+
+![桌面数据包管理列表](docs/images/admin-desktop.png)
+
+**桌面详情**：点击名称查看完整元数据与子包内容。
+
+![桌面数据包详情侧栏](docs/images/admin-detail-desktop.png)
+
+**手机界面**：卡片列表与全屏详情。
+
+<p>
+  <img src="docs/images/admin-mobile.png" alt="手机数据包卡片列表" width="320">
+  <img src="docs/images/admin-detail-mobile.png" alt="手机数据包全屏详情" width="320">
+</p>
+
 ## 快速开始
 
 macOS / Linux 需要 Go 1.24 或更新版本及 `make`。在仓库根目录运行：
@@ -77,7 +96,7 @@ make build        # 生成 output/packet-cloud
 |-- db/                                 # 当前 schema 与版本化迁移
 |-- examples/                           # packets.json 数据集、upload.json 请求
 |-- scripts/                            # 本地启动与格式检查
-|-- docs/                               # 专题文档、images/legacy-admin.png 历史截图
+|-- docs/                               # 专题文档、images/ 运行截图与历史截图
 |-- .github/workflows/go.yml             # CI
 |-- docker-compose.yml                  # 本地 MySQL 测试环境
 |-- Makefile                            # 开发、校验、构建与生成命令
