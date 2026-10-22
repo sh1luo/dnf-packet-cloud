@@ -12,6 +12,7 @@ import (
 // customizeRegister registers customize routers.
 func customizedRegister(r *server.Hertz) {
 	r.GET("/v1/packet/edit", handler.OnlineEdit)
+	r.GET("/v1/packet/detail/:id", handler.GetPacketDetail)
 	r.GET("/healthz", func(_ context.Context, c *app.RequestContext) {
 		c.JSON(200, map[string]string{"status": "ok"})
 	})

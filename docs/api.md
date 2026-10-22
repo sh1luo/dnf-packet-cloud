@@ -8,6 +8,7 @@
 | --- | --- | --- |
 | GET | `/v1/packet/list` | `cloud_packets` 摘要，无子包内容 |
 | GET | `/v1/packet/get/:id` | `user_packets` 为完整云包 JSON 的加密字符串 |
+| GET | `/v1/packet/detail/:id` | 管理界面只读明文详情，显式返回 `{"code":0,"msg":"获取云数据包成功","packet":{...}}` |
 | POST | `/v1/packet/upload` | `{"cloud_packet":{...}}`，服务端分配云包 ID |
 | POST | `/v1/packet/mupload` | `{"mcloud_packet":{...,"channel":[...]}}`，事务批量上传 |
 | DELETE | `/v1/packet/delete` | `{"from":1,"to":10}`，正整数范围，含两端 |
@@ -23,6 +24,7 @@ curl -X POST http://127.0.0.1:8080/v1/packet/upload \
 
 curl http://127.0.0.1:8080/v1/packet/list
 curl http://127.0.0.1:8080/v1/packet/get/1
+curl http://127.0.0.1:8080/v1/packet/detail/1
 
 curl -X DELETE http://127.0.0.1:8080/v1/packet/delete \
   -H 'Content-Type: application/json' \
@@ -37,18 +39,22 @@ HTTP 请求体上限 4 MiB。云包 region/channel/time 必须为非空白且不
 
 子包不能为 null；ID/size 非负，name 最长 64 字符，send_timing 最长 32 字符。零 ID 和重复子包 ID 均保留，存储使用独立 ordinal 维持数组顺序。客户端传入的云包 ID 不用于分配。
 
-详情路径 ID 必须为正整数 int32；如同时提供 query `id`，每个值均须与路径一致。删除 `from`、`to` 同样为正整数 int32，且 `from <= to`。
+两种详情接口的路径 ID 均须为正整数 int32；如同时提供 query `id`，每个值均须与路径数值一致（如路径 `1` 与 query `01` 等价）。删除 `from`、`to` 同样为正整数 int32，且 `from <= to`。
 
 ## 状态与响应
 
 错误统一为 `{"code":HTTP状态码,"msg":"说明"}`：400 参数错误、401 上传令牌缺失/错误、404 未找到、409 ID 耗尽、500 存储或内部错误。后台删除不要求令牌，页面仅在 HTTP 成功及 `code:0` 时更新列表。
 
-上传、列表、详情保留原生成模型的成功字段；其中 `code:0` 可能因 `omitempty` 被省略。批量上传和删除成功显式返回 `{"code":0,"msg":"..."}`。无数据时 `cloud_packets` 也可能省略，客户端按空数组处理；数据内容仅通过详情获取。
+上传、列表、旧加密详情 `/v1/packet/get/:id` 保留原生成模型的成功字段；其中 `code:0` 可能因 `omitempty` 被省略。批量上传和删除成功显式返回 `{"code":0,"msg":"..."}`。无数据时 `cloud_packets` 也可能省略，客户端按空数组处理；数据内容仅通过详情获取。
+
+管理详情 `/v1/packet/detail/:id` 始终显式返回成功字段 `code:0`、`msg` 和 `packet`。`packet` 为完整 `CloudPacket`，保留所有元数据及子包的原始顺序、零 ID、重复 ID、content、name、size、send_timing，不排序、不去重、不改写存储。生成模型的零值字段仍遵循 `omitempty`，例如零 ID 可省略；无子包时 `user_packets` 可省略，客户端按空数组处理。
+
+管理详情与旧加密详情具有相同的公开读取权限，即使配置了上传令牌也无需鉴权。其所有成功及错误响应均带 `Cache-Control: no-store`；不存在返回 404，无效路径 ID 或冲突 query `id` 返回 400，存储损坏及其他内部错误返回脱敏的 500，不暴露存储路径。
 
 旧版本行为变化：详情路径现在正确绑定，未找到返回 404；批量成功从 `null` 改为业务响应；错误不再序列化为 `{}`。客户端需同时检查 HTTP 状态与对应响应字段。
 
 ## 加密格式
 
-详情响应保留 `base64(随机 16 字节 IV || AES-CBC(PKCS#7(JSON)))` 及旧内置密钥，解密后为完整 `CloudPacket` JSON。工具实现拒绝错误 base64、截断块和非法 padding。
+旧详情 `/v1/packet/get/:id` 响应保留 `base64(随机 16 字节 IV || AES-CBC(PKCS#7(JSON)))` 及旧内置密钥，解密后为完整 `CloudPacket` JSON。工具实现拒绝错误 base64、截断块和非法 padding。管理详情 `/v1/packet/detail/:id` 直接返回明文 JSON，不替换旧协议。
 
 CBC 不提供消息认证，内置密钥仅用于客户端兼容。新格式应通过客户端可协商的协议版本引入，不能直接替换现有响应。
